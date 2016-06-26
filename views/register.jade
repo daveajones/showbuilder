@@ -1,0 +1,9 @@
+extends layout-noauth
+
+block script
+    script(src='/scripts/register.js')
+
+block content
+    +navbar_noauth(title)
+
+    +register_form(title)

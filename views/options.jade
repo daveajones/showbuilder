@@ -1,0 +1,19 @@
+//
+   Created by dave on 6/3/16.
+extends layout
+
+block script
+    script(src='/scripts/options.js')
+
+block content
+    +navbar(title)
+
+    .section.options
+        .container
+            .row.save
+                .col-md-12
+                    button#saveOptions.btn.btn-default.btn-success.disabled.pull-right(href='#')
+                        | Save
+            .row.
+                .col-md-12
+                    input.firstname(placeholder='First name...')

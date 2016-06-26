@@ -1,0 +1,9 @@
+extends layout-noauth
+
+block script
+    script(src='/scripts/login.js')
+
+block content
+    +navbar_noauth(title, systemfqdn)
+
+    +login_form(title)

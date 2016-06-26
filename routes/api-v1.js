@@ -11,7 +11,6 @@ var showBuilder = require('../showBuilder');
 router.post('/register', function (req, res, next) {
     var email = req.body.email;
     var password = req.body.password;
-    var username = req.body.username;
 
     //##: Start clean
     delete req.session.token;
@@ -20,13 +19,6 @@ router.post('/register', function (req, res, next) {
     if (!validator(email)) {
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify({"status": false, "description": "[" + email + "] is not a valid email address."}));
-        return false;
-    }
-
-    //##: Need to have a username
-    if (!username) {
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify({"status": false, "description": "You must set a username."}));
         return false;
     }
 
@@ -68,7 +60,6 @@ router.post('/register', function (req, res, next) {
                         //collectionUsers.insert({"email": email, "password": hash}, {w: 1}, function (err, result) {});
                         collectionUsers.update({"email": email}, {
                             "email": email,
-                            "username": username,
                             "password": hash,
                             "registerToken": regtoken
                         }, {upsert: true});

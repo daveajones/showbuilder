@@ -1,0 +1,24 @@
+include mixin-widgets
+doctype html
+html
+    head
+        title= title
+        meta(charset='utf-8')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        link(href='/style/font-awesome-4.6.3.min.css', rel='stylesheet')
+        link(href='/style/bootstrap-3.3.6.min.css', rel='stylesheet')
+        link(href='/style/style.css', rel='stylesheet')
+
+        script(src='/scripts/jquery-2.2.4.min.js')
+        script(src='/scripts/bootstrap-3.3.6.min.js')
+        script(src='/scripts/jquery.form.min.js')
+        script(src='/scripts/jsmediatags.min.js')
+        script(src='/scripts/debounce.js')
+        script(src='/scripts/client-env.js')
+        script(src='/scripts/client-api.js')
+        script(src='/scripts/logout.js')
+        block script
+
+    body
+        +alert_bar
+        block content

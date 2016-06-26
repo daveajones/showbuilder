@@ -1,0 +1,39 @@
+//
+   Created by dave on 6/3/16.
+extends layout
+
+block script
+    script(src='/scripts/account.js')
+
+block content
+    +navbar(title, username)
+
+    .section.options
+        .container
+            .row.save
+                .col-md-12
+                    .btn-toolbar
+                        button.save.btn.btn-default.disabled.pull-right(href='#')
+                            | Save
+                        a.back.btn.btn-default.pull-right(href='/home')
+                            i.fa.fa-fw.fa-chevron-left
+                            | Home
+            .row.text-right
+                .col-md-6.col-md-offset-3
+                    form.form-horizontal.login-form(role='form', action='/api/v1/account', id='account', class='account', name='account', method='post')
+                        input.hide(type='submit')
+                        .form-group
+                            .col-sm-3
+                                label.control-label(for='inputFirstName') First Name
+                            .col-sm-8
+                                input#inputFirstName.form-control(type='text', name='firstname', placeholder='John')
+                        .form-group
+                            .col-sm-3
+                                label.control-label(for='inputLastName') Last Name
+                            .col-sm-8
+                                input#inputLastName.form-control(type='text', name='lastname', placeholder='Doe')
+                        .form-group
+                            .col-sm-3
+                                label.control-label(for='inputPersonalSite') Personal Site
+                            .col-sm-8
+                                input#inputPersonalSite.form-control(type='url', name='personalsite', placeholder='http://mypersonalblog.com')

@@ -1,0 +1,19 @@
+//
+   Created by dave on 6/3/16.
+extends layout
+
+block script
+    script(src='/scripts/services.js')
+
+block content
+    +navbar(title)
+
+    .section.services
+        .container
+            .row.save
+                .col-md-12
+                    button#saveOptions.btn.btn-default.btn-success.disabled.pull-right(href='#')
+                        | Save
+            .row.cdn
+                .col-md-12
+                    input.cdntype
