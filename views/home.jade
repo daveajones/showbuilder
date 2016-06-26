@@ -1,0 +1,112 @@
+//
+   Created by dave on 6/3/16.
+extends layout
+
+block script
+    script(src='/scripts/home.js')
+
+block content
+    +navbar_home(title,username)
+
+    // New show drop-in form
+    #newShowForm.pageOverlay.collapse
+        .section
+            .container
+                .row.row-centered
+                    .col-md-12
+                        button.btn.btn-link.pull-right(data-toggle='collapse', data-target='#newShowForm', aria-expanded='false', aria-controls='collapseExample')
+                            i.fa.fa-close
+                        .well
+                            h5.text-center.text-large Create a new show with a new feed.
+                            hr
+                            form.form-horizontal(role='form')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        input#inputShowTitle.form-control(type='text', placeholder='Show Title...')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        input#inputShowLinkExternal.form-control(type='text', placeholder='Show Link (optional)')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        .checkbox
+                                            label
+                                                input(type='checkbox')
+                                                | Explicit
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        .text-center
+                                            button.btn.btn-default.save(type='submit') Create
+
+    // New episode drop-in form
+    #newEpisodeForm.pageOverlay.collapse
+        .section
+            .container
+                .row.row-centered
+                    .col-md-12
+                        button.btn.btn-link.pull-right(data-toggle='collapse', data-target='#newEpisodeForm', aria-expanded='false', aria-controls='collapseExample')
+                            i.fa.fa-close
+                        .well
+                            h5.text-center.text-large
+                                | You can drag a tagged mp3 here to auto-fill these details
+                                | from the ID3
+                                | tag.
+                            hr
+                            form.form-horizontal(role='form')
+                                .form-inline.form-group
+                                    .col-sm-8.col-centered
+                                        | Episode Number:
+                                        input#inputEpisodeNumber.form-control.episodeNumber(type='text')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        input#inputEpisodeTitle.form-control(type='text', placeholder='Episode Title...')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        input#inputEpisodeLinkExternal.form-control(type='text', placeholder='Episode Link (optional)')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        textarea#inputEpisodeDescription.form-control(type='text', placeholder='Description (optional)')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        .checkbox
+                                            label
+                                                input(type='checkbox')
+                                                | Explicit
+                                // //TODO: set a default album art pref for each show
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        label.btn.btn-default.btn-file.btn-albumart
+                                            img.art.albumart(src='#')
+                                            input.albumart(type='file', style='display: none;')
+                                        input#inputEpisodeAlbumArt.form-control.hide(type='text', value='')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        label.btn.btn-default.btn-file
+                                            span Choose mp3...
+                                            input.mp3(type='file', style='display: none;')
+                                .form-group
+                                    .col-sm-8.col-centered
+                                        .text-center
+                                            button.btn.btn-default.btn-success.save(type='submit')
+                                                | Save
+                                            span
+                                                | or
+                                            button.btn.btn-default.btn-warning.savepublish(type='submit')
+                                                | Save &
+                                                | Publish
+
+    // Show area
+    .section
+        // New Episode button
+        .container
+            .row
+                .col-md-12
+                    button.btn.btn-default.newEpisode(data-toggle='collapse', data-target='#newEpisodeForm', aria-expanded='false', aria-controls='collapseExample')
+                        i.fa.fa-plus.fa-fw
+                        | New Episode
+                    a#showFeedUrl.btn.btn-default.pull-right(href='#', target='_blank')
+                        i.fa.fa-rss.fa-fw
+                        |  Feed
+        // Episode list
+        #episodeList.container
+            .row
+                hr
