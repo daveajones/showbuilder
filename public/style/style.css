@@ -1,0 +1,112 @@
+.noauth.navbar {
+    margin-top:20px;
+}
+
+.alertbar {
+    margin-top:8px;
+    position:fixed;
+    z-index: 9000;
+}
+
+.noauth.navbar .navbar-nav {
+    display: inline-block;
+    float: none;
+    vertical-align: top;
+}
+
+.noauth.navbar .navbar-collapse {
+    text-align: center;
+}
+
+.login_form, .register_form {
+    padding-top:80px;
+}
+
+.pageOverlay {
+    padding-top: 80px;
+    position: absolute;
+    background-color: white;
+    top: 0px;
+    left: 0px;
+    /* width:100%; */
+    /* height:100%; */
+    z-index: 100;
+    overflow: hidden;
+}
+
+.pageOverlay#newShowForm {
+    z-index: 101;
+}
+
+.row-centered {
+    text-align: center;
+}
+
+.col-centered {
+    display: inline-block;
+    float: none;
+    /* reset the text-align */
+    text-align: left;
+    /* inline-block space fix */
+    margin-right: -4px;
+}
+
+audio {
+    max-width: 90%;
+}
+
+.mediarow p.description {
+    max-width: 70%;
+}
+
+.mediarow .media-object.albumart {
+    width: 128px;
+    height: 128px;
+}
+
+h4.showEditControls div.dropdown {
+    padding-right: 20px;
+}
+
+.pageOverlay#newEpisodeForm img.albumart {
+    width: 128px;
+    height: 128px;
+}
+
+.pageOverlay#newEpisodeForm input.episodeNumber {
+    width: 80px;
+}
+
+.pageOverlay#newEpisodeForm textarea#inputEpisodeDescription {
+    height: 200px;
+}
+
+.dragging-over * {
+    pointer-events: none;
+}
+
+.btn-albumart {
+    padding: 0;
+}
+
+.inline {
+    display: inline-block;
+}
+
+li.media.unpublished {
+    border-right: 4px solid #ffd261;
+    padding-right: 4px;
+}
+
+.media-body .btn-publish, .btn-unpublish, .btn-delete {
+    clear: both;
+    margin: 8px;
+}
+
+li.media h4.showEditControls {
+    margin-bottom: 0
+}
+
+div.navbar li#showSelector.dropdown {
+    margin-left: -13px;
+}
