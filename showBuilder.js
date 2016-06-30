@@ -167,7 +167,7 @@ module.exports = {
             ssl: true
         });
 
-        var emailbody = "http://"+process.env.cgsbSystemFQDN+"/verify?email=" + encodeURIComponent(encodedemail) + "&token=" + token;
+        var emailbody = process.env.cgsbSystemFQDN+"/verify?email=" + encodeURIComponent(encodedemail) + "&token=" + token;
         console.log("EMAILBODY: " + emailbody);
 
         //send the message and get a callback with an error or details of the message that was sent

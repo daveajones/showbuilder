@@ -28,6 +28,22 @@ $(document).ready(function() {
         });
     //});
 
+    //See if there were account details already saved and populate if there were
+    $.ajax({
+        method: "GET",
+        url: "/api/v1/account",
+        headers: {
+            'X-AuthToken': getAuthToken()
+        }
+    })
+        .done(function (responseData) {
+            if (responseData.status) {
+                $("input#inputFirstName").val(responseData.account.firstname);
+                $("input#inputLastName").val(responseData.account.lastname);
+                $("input#inputPersonalSite").val(responseData.account.personalsite);
+            }
+        });
+    
     // bind form using 'ajaxForm'
     $('form.account').ajaxForm(options);
 });

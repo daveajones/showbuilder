@@ -264,6 +264,8 @@ router.post('/logout', function (req, res, next) {
 
 /***** Account management *****/
 
+/* Set the account options for a user */
+//TODO: Need LOTS of defense here for these user supplied values
 router.post('/account', function (req, res, next) {
     console.log("HEADERS: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -326,6 +328,92 @@ router.post('/account', function (req, res, next) {
         });
     });
 });
+
+/* Get the account options for a user */
+router.get('/account', function (req, res, next) {
+    console.log("HEADER: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title/showid
+        var ObjectId = require('mongodb').ObjectID;
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find a user with the given id
+            var collectionAccounts = db.collection(process.env.cgsbCollectionAccounts);
+            var objectUserId = new ObjectId(userid);
+            collectionAccounts.find({
+                "userid": objectUserId
+            }).toArray(function (err, records) {
+                if(err) {
+                    //##: Error occured
+                        res.setHeader('Content-Type', 'application/json');
+                        res.status(500);
+                        res.send(JSON.stringify({
+                            "status": false,
+                            "userid": userid,
+                            "description": "An error occured looking for account details."
+                        }));
+                        return false;
+                }
+
+                //##: If a record does not exist give back an error
+                if (records.length !== 1) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "count": 0,
+                        "description": "No user exists with id: [" + userid + "]."
+                    }));
+                    return false;
+                }
+
+                console.log("DEBUG(database) Found User id: [" + records[0].userid.toString() + " | "+userid+"]");
+
+                //##: DEBUG
+                if (records[0].userid.toString() == userid) {
+                    //##: Report success
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(200);
+                    res.send(JSON.stringify({
+                        "status": true,
+                        "userid": records[0].userid,
+                        "account": records[0],
+                        "description": "User account details found."
+                    }));
+                    return false;
+                } else {
+                    console.log("DEBUG(database) User id type mismatch [" + typeof records[0].userid + " | " + typeof userid + "]");
+                    console.log(records[0]._id);
+
+                    //##: Report failure
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(401);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "userid": userid,
+                        "description": "Error retreiving user account details: [" + records[0].userid + " | " + userid + "]"
+                    }));
+                    return false;
+                }
+            });
+        });
+    });
+});
+
 
 /***** Show management *****/
 
