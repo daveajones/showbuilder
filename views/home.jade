@@ -95,7 +95,13 @@ block content
                                                 | Publish
 
     // Show area
-    .section
+    .section.noshows.hidden
+        .container
+            .row
+                .col-md-12
+                    p.notice.text-center
+                        | You have no shows yet. Please create one.
+    .section.showarea.hidden
         // New Episode button
         .container
             .row

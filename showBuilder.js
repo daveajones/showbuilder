@@ -1,6 +1,7 @@
 var mongo = require('mongodb').MongoClient;
 var traceback = require('traceback');
 
+
 var loggit = function (message, sourcefile, methodName, LineNo) {
     //var tb = traceback()[1]; // 1 because 0 should be your enterLog-Function itself
     // fs.appendFile('errlog.txt', message + '\t' + tb.file + '\t' + tb.method + '\t' + tb.line + '\n', function (e) {
@@ -158,6 +159,7 @@ module.exports = {
     //##: Send an email to verify if the email address is valid
     sendEmailVerification: function (emailaddr, token) {
         var email = require("./node_modules/emailjs/email");
+        var encodedemail = emailaddr;
         var server = email.server.connect({
             user: process.env.cgsbEmailUsername,
             password: process.env.cgsbEmailPassword,
@@ -165,9 +167,12 @@ module.exports = {
             ssl: true
         });
 
+        var emailbody = "http://"+process.env.cgsbSystemFQDN+"/verify?email=" + encodeURIComponent(encodedemail) + "&token=" + token;
+        console.log("EMAILBODY: " + emailbody);
+
         //send the message and get a callback with an error or details of the message that was sent
         server.send({
-            text: "http://localhost:3000/verify?email=" + emailaddr + "&token=" + token,
+            text: emailbody,
             from: 'You <'+process.env.cgsbEmailUsername+'>',
             //TODO: change this to the real email address
             to: "someone <"+process.env.cgsbEmailUsername+">",
@@ -177,6 +182,17 @@ module.exports = {
         });
 
         loggit("Sent email to: [" + emailaddr + "]");
+    },
+
+    addEpisodeToFeed: function (show, episode) {
+
+    },
+
+    //##: Create an RSS feed for a new show
+    newShowFeed: function (show) {
+        var RSS = require('rss');
+
+
     }
 
 };

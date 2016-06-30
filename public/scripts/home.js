@@ -107,11 +107,11 @@ $(document).on('ready', function () {
 
         addNewEpisode(showid, getNextEpisodeNumber(), title, link, description, explicit, albumart, mp3url, true)
             .done(function(episodeid) {
-                showAlert("Episode added", true);
-                setActiveShow(getCurrentShowId());
+                showBuilder.showAlert("Episode added", true);
+                setActiveShow(env.gActiveShow);
             })
             .fail(function(msg){
-                showAlert(msg);
+                showBuilder.showAlert(msg);
             });
         $('button.newEpisode').trigger('click');
         clearForm('#newEpisodeForm');
@@ -132,11 +132,11 @@ $(document).on('ready', function () {
 
         addNewEpisode(showid, getNextEpisodeNumber(), title, link, description, explicit, albumart, mp3url, true)
             .done(function(episodeid) {
-                showAlert("Episode added", true);
+                showBuilder.showAlert("Episode added", true);
                 setActiveShow(getCurrentShowId());
             })
             .fail(function(msg){
-                showAlert(msg);
+                showBuilder.showAlert(msg);
             });
         $('button.newEpisode').trigger('click');
         clearForm('#newEpisodeForm');
@@ -292,14 +292,27 @@ $(document).on('ready', function () {
 
     function getAllShows() {
         console.log("getAllShows()");
+        var elShowArea = $('div.section.showarea');
+        var elNoShows  = $('div.section.noshows');
         getShows()
             .done(function (showcount, shows) {
+                if(showcount > 0) {
+                    console.log("Make the show area visible.");
+                    elShowArea.removeClass('hidden');
+                    elNoShows.addClass('hidden');
+                }
+
                 env.gShows = shows;
                 buildShowSelector(elShowSelector, shows[0], shows);
                 setActiveShow(shows[0]);
             })
-            .fail(function (msg) {
-                console.log("Error getting shows: " + msg);
+            .fail(function (showcount, description) {
+                console.log("Error getting shows: " + description);
+                if(showcount === 0) {
+                    elButtonNewShow.trigger('click');
+                    elShowArea.addClass('hidden');
+                    elNoShows.removeClass('hidden');
+                }
             });
     }
 
@@ -318,7 +331,7 @@ $(document).on('ready', function () {
                 if (responseData.status) {
                     deferredObject.resolve(responseData.count, responseData.shows);
                 } else {
-                    deferredObject.reject(responseData.description);
+                    deferredObject.reject(responseData.count, responseData.description);
                 }
             });
         //Return a promise
@@ -398,7 +411,7 @@ $(document).on('ready', function () {
     }
 
     function setActiveShow(show) {
-        console.log("setActiveShow()");
+        console.log("setActiveShow("+show+")");
         getEpisodes(show)
             .done(function (count, episodes) {
                 console.log("Success...");
@@ -473,28 +486,6 @@ $(document).on('ready', function () {
 
             console.log("EPISODE: " + episode);
         }
-    }
-
-    function showAlert(msg, status) {
-        var alertclasses = ["alert-success", "alert-info", "alert-warning", "alert-danger"];
-        var elAlertBar = $('.alertbar');
-        var elAlert = elAlertBar.find('div.alert');
-
-
-        console.log("showAlert()");
-
-        elAlert.removeClass(alertclasses.join(" "));
-
-        if(status) {
-            elAlert.addClass("alert-success");
-        } else {
-            elAlert.addClass("alert-danger");
-        }
-
-        elAlertBar.find('span.msg').text(msg);
-        elAlertBar.find('div.alert').removeClass('hide');
-
-        return true;
     }
 
     function removeMediaRowsFromEpisodeGallery(elEpisodeGallery) {

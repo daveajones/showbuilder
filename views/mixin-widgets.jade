@@ -143,8 +143,8 @@ mixin alert_bar
     .section.alertbar
         .container
             .row
-                .col-md-8.col-md-offset-3
-                        .alert.alert-danger.hide(role="alert")
-                            button.close(type="button", class="close", data-dismiss="alert", aria-label="Close")
-                                span(aria-hidden="true") &times;
-                            span.msg &nbsp;
+                .alertwrapper.col-md-8.col-md-offset-3
+                    .alert.alert-danger.hide(role="alert")
+                        button.close(type="button", data-dismiss="alert", aria-label="Close")
+                            span(aria-hidden="true") &times;
+                        span.msg &nbsp;

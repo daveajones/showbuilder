@@ -505,6 +505,99 @@ router.get('/show/:showid', function (req, res, next) {
     });
 });
 
+/* Delete a show for the user of this token */
+router.delete('/show/:showid', function (req, res, next) {
+    console.log("HEADER: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        var showid = req.params.showid;
+
+        //##: Need to have a show show id for lookup
+        if (!showid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid show id."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title/showid
+        var ObjectId = require('mongodb').ObjectID;
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find a show with the given user id and show id
+            var collectionShows = db.collection(process.env.cgsbCollectionShows);
+            var objectShowId = new ObjectId(showid);
+            var objectUserId = new ObjectId(userid);
+            collectionShows.find({
+                "_id": objectShowId,
+                "userid": objectUserId
+            }).toArray(function (err, records) {
+
+                //##: If no show is found, give back an error
+                if (records.length === 0) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "count": 0,
+                        "description": "No show exists with id: [" + showid + "]."
+                    }));
+                    return false;
+                }
+
+                //##: Delete the show
+                if (records[0]._id.toString() === showid) {
+                    console.log("DEBUG(database) Found Show id: [" + records[0]._id + "]");
+
+                    collectionShows.deleteMany({
+                        "_id": objectShowId,
+                        "userid": objectUserId
+                    }, {w: 1}, function (err, results) {
+                        if (err) {
+                            console.log("DEBUG(database) Show id type mismatch [" + typeof records[0]._id + " | " + typeof showid + "]");
+                            console.log(records[0]._id);
+
+                            //##: Report failure
+                            res.setHeader('Content-Type', 'application/json');
+                            res.status(200);
+                            res.send(JSON.stringify({
+                                "status": false,
+                                "showid": showid,
+                                "description": "Error deleting show: [" + records[0]._id + " | " + showid + "]"
+                            }));
+                            return false;
+                        } else {
+                            //##: Report success
+                            res.setHeader('Content-Type', 'application/json');
+                            res.status(200);
+                            res.send(JSON.stringify({
+                                "status": true,
+                                "id": showid,
+                                "show": records[0],
+                                "description": "Show removed."
+                            }));
+                            return false;
+                        }
+                    });
+                }
+            });
+        });
+    });
+});
+
 /* Retrieve a list of all the shows for this user */
 router.get('/shows', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
@@ -607,7 +700,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
 
         //##: Need to have a valid episode link either external or internal
         //TODO: this link checking needs more validation like ensuring http: at the beginning
-        if (!link || link.length < 1 || link.indexOf('http') < 0) {
+        if (!link || link.length < 1) {
             //TODO: if no external link was given we need to create an internal one
             res.setHeader('Content-Type', 'application/json');
             res.status(422);

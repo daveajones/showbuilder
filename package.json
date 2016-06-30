@@ -16,11 +16,9 @@
     "jade": "~1.11.0",
     "mongodb": "",
     "morgan": "~1.6.1",
-    "react": "^15.1.0",
-    "react-bootstrap": "^0.29.4",
-    "react-dom": "^15.1.0",
     "serve-favicon": "~2.3.0",
     "traceback": "",
-    "validate-email": ""
+    "validate-email": "",
+    "rss": ""
   }
 }
