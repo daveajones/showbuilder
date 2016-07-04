@@ -46,7 +46,8 @@ $(document).on('ready', function () {
     elNewEpisodeForm.find('img.albumart').attr('src', noartsrc);
 
     /* Episode publish button */
-    elMediaList.on('click', 'div.media-body a.btn-publish', function () {
+    elEpisodeGallery.on('click', 'a.btn-publish', function () {
+        alert('test');
         //TODO: need ajax and verification here before marking as published
         $(this).parents('li.media').removeClass('unpublished').addClass('published');
         $(this).removeClass('btn-publish btn-success btn-default').addClass('btn-unpublish');
@@ -57,7 +58,8 @@ $(document).on('ready', function () {
 
     /* Episode delete button */
     //TODO: episodes must be renumbered after one is deleted maybe - not sure - depends on publish status
-    elMediaList.on('click', 'div.media-body a.btn-delete', function () {
+    elEpisodeGallery.on('click', 'a.btn-delete', function () {
+        alert('test');
         //TODO: need ajax and verification here before removing
         $(this).parent().parent().remove();
         $(this).blur();
@@ -198,6 +200,7 @@ $(document).on('ready', function () {
         $('div#newEpisodeForm div.well').find('> *').removeClass('dragging-over');
         return false;
     });
+
 
     /* Handle drag-drop into the body which should open the new episode form if it's hidden */
     $('body').on('dragenter', function (e) {
@@ -449,7 +452,7 @@ $(document).on('ready', function () {
             var episode = episodes[i];
 
             //Add the media block itself for this episode
-            elEpisodeList.append('<li class="media episode' + episode.number + '"></li>');
+            elEpisodeList.append('<li class="media episode' + episode.number + '" data-id="' + episode._id + '"></li>');
             var elEpisode = elEpisodeList.find('li.media.episode' + episode.number);
 
             //Note if it's published or not
