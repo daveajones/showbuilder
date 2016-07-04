@@ -764,10 +764,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         var link = req.body.link;
         var number = req.params.number;
         var description = req.body.description;
-        var published = false;
-        if(req.body.published) {
-            published = req.body.published;
-        }
+        var published = (req.body.published === "true");
         var albumart = req.body.albumart;
         var mediafile = req.body.mediafile;
         var showid = req.params.showid;
@@ -824,9 +821,10 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         if (albumart != "") {
             var base64Data = albumart.replace(/^data:image\/png;base64,/, "");
             console.log("BASE64 Image: " + base64Data);
-            require("fs").writeFile("/tmp/out.png", base64Data, 'base64', function (err) {
-                console.log(err);
-            });
+            //TODO: Handle file here
+            // require("fs").writeFile("/tmp/out.png", base64Data, 'base64', function (err) {
+            //     console.log(err);
+            // });
         }
 
         //##: Connect to db and search for a show with this title already
