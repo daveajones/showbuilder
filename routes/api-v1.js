@@ -766,13 +766,12 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         var description = req.body.description;
         var published = false;
         if(req.body.published) {
-            published = true;
+            published = req.body.published;
         }
         var albumart = req.body.albumart;
         var mediafile = req.body.mediafile;
         var showid = req.params.showid;
         var dateNow = new Date().toISOString();
-
 
         //##: Need to have an episode title and needs to be long enough with no
         //##: wierd characters
@@ -821,6 +820,15 @@ router.put('/episode/:showid/:number', function (req, res, next) {
             return false;
         }
 
+        //##: See if we have album art
+        if (albumart != "") {
+            var base64Data = albumart.replace(/^data:image\/png;base64,/, "");
+            console.log("BASE64 Image: " + base64Data);
+            require("fs").writeFile("/tmp/out.png", base64Data, 'base64', function (err) {
+                console.log(err);
+            });
+        }
+
         //##: Connect to db and search for a show with this title already
         var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
@@ -849,7 +857,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
                         "userid": userObjectId,
                         "title": title,
                         "link": link,
-                        "number": number,
+                        "number": Number(number),
                         "description": description,
                         "dateModified": dateNow,
                         "published": published,
@@ -879,7 +887,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
                         "userid": userid,
                         "title": title,
                         "link": link,
-                        "number": number,
+                        "number": Number(number),
                         "description": description,
                         "dateModified": dateNow,
                         "published": published,
@@ -1020,8 +1028,13 @@ router.get('/episodes/:showid', function (req, res, next) {
                 //##: If no episodes exist for this show id then bail
                 if (records.length === 0) {
                     res.setHeader('Content-Type', 'application/json');
-                    res.status(422);
-                    res.send(JSON.stringify({"status": false, "description": "No episodes exist for this show."}));
+                    res.status(200);
+                    res.send(JSON.stringify({
+                        "status": true,
+                        "episodes": [],
+                        "count": 0,
+                        "description": "No episodes exist for this show."
+                    }));
                     return false;
                 }
 

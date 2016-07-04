@@ -37,14 +37,14 @@ $(document).on('ready', function () {
 
     /* Form overlay toggle hooks debounced */
     resizeFormOverlays();
-    $(window).smartresize(function(){
-       resizeFormOverlays()
+    $(window).smartresize(function () {
+        resizeFormOverlays()
     });
 
     /* Set initial album art for new episode dialogue */
     elNewEpisodeForm.find('input#inputEpisodeAlbumArt').val(noartsrc);
     elNewEpisodeForm.find('img.albumart').attr('src', noartsrc);
-    
+
     /* Episode publish button */
     elMediaList.on('click', 'div.media-body a.btn-publish', function () {
         //TODO: need ajax and verification here before marking as published
@@ -62,33 +62,33 @@ $(document).on('ready', function () {
         $(this).parent().parent().remove();
         $(this).blur();
     });
-    
+
     /* New show dialog */
-    elNewShowForm.on('shown.bs.collapse', function() {
+    elNewShowForm.on('shown.bs.collapse', function () {
         $(this).find('input').first().focus();
     });
     elNewShowFormOverlay.find('button.save').on('click', function () {
         var title = elNewShowFormOverlay.find('input#inputShowTitle').val();
         var link = elNewShowFormOverlay.find('input#inputShowLinkExternal').val();
         addNewShow(title, link)
-            .done(function(show) {
+            .done(function (show) {
                 console.log("DEBUG: " + show);
                 getAllShows();
                 setActiveShow(show);
             })
-            .fail(function(description) {
+            .fail(function (description) {
                 alert(description);
             });
         closeOverlayForms();
         getAllShows();
         return false;
     });
-    
+
     /* New episode dialog */
     elButtonNewEpisode.on('click', function () {
         $('#newEpisodeForm.pageOverlay input.episodeNumber').val(getNextEpisodeNumber());
     });
-    elNewEpisodeFormOverlay.on('shown.bs.collapse', function() {
+    elNewEpisodeFormOverlay.on('shown.bs.collapse', function () {
         $('#newEpisodeForm.pageOverlay input#inputEpisodeTitle').focus();
     });
     elNewEpisodeFormOverlay.find('button.save').on('click', function () {
@@ -96,7 +96,7 @@ $(document).on('ready', function () {
         var title = $('#newEpisodeForm.pageOverlay input#inputEpisodeTitle').val();
         var description = $('#newEpisodeForm.pageOverlay textarea#inputEpisodeDescription').val();
         var explicit = $('#newEpisodeForm.pageOverlay input#inputEpisodeExplicit').val();
-        var albumart = $('#newEpisodeForm.pageOverlay input#inputEpisodeAlbumArt').val();
+        var albumart = $('#newEpisodeForm.pageOverlay img.albumart').attr('src');
         var link = '#';
         var mp3url = '#';
 
@@ -105,12 +105,12 @@ $(document).on('ready', function () {
             return false;
         }
 
-        addNewEpisode(showid, getNextEpisodeNumber(), title, link, description, explicit, albumart, mp3url, true)
-            .done(function(episodeid) {
+        addNewEpisode(showid, getNextEpisodeNumber(), title, link, description, explicit, albumart, mp3url, false)
+            .done(function (episodeid) {
                 showBuilder.showAlert("Episode added", true);
                 setActiveShow(env.gActiveShow);
             })
-            .fail(function(msg){
+            .fail(function (msg) {
                 showBuilder.showAlert(msg);
             });
         $('button.newEpisode').trigger('click');
@@ -121,7 +121,7 @@ $(document).on('ready', function () {
         var title = $('#newEpisodeForm.pageOverlay input#inputEpisodeTitle').val();
         var description = $('#newEpisodeForm.pageOverlay textarea#inputEpisodeDescription').val();
         var explicit = $('#newEpisodeForm.pageOverlay input#inputEpisodeExplicit').val();
-        var albumart = $('#newEpisodeForm.pageOverlay input#inputEpisodeAlbumArt').val();
+        var albumart = $('#newEpisodeForm.pageOverlay img.albumart').attr('src');
         var link = '#';
         var mp3url = '#';
 
@@ -131,11 +131,11 @@ $(document).on('ready', function () {
         }
 
         addNewEpisode(showid, getNextEpisodeNumber(), title, link, description, explicit, albumart, mp3url, true)
-            .done(function(episodeid) {
+            .done(function (episodeid) {
                 showBuilder.showAlert("Episode added", true);
                 setActiveShow(getCurrentShowId());
             })
-            .fail(function(msg){
+            .fail(function (msg) {
                 showBuilder.showAlert(msg);
             });
         $('button.newEpisode').trigger('click');
@@ -224,13 +224,13 @@ $(document).on('ready', function () {
     }
 
     function addNewEpisode(showid, number, title, link, description, explicit, arturl, mp3url, published) {
-        console.log("addNewEpisode("+showid+","+title+","+link+")");
+        console.log("addNewEpisode(" + showid + "," + title + "," + link + ")");
         var authToken = getAuthToken();
         var deferredObject = $.Deferred();
         //Ajax call
         $.ajax({
             method: "PUT",
-            url: "/api/v1/episode/" +showid + "/" + number,
+            url: "/api/v1/episode/" + showid + "/" + number,
             dataType: 'json',
             data: {
                 "title": title,
@@ -263,7 +263,7 @@ $(document).on('ready', function () {
     }
 
     function addNewShow(title, link) {
-        console.log("addNewShow("+title+","+link+")");
+        console.log("addNewShow(" + title + "," + link + ")");
         var authToken = getAuthToken();
         var deferredObject = $.Deferred();
         //Ajax call
@@ -293,10 +293,10 @@ $(document).on('ready', function () {
     function getAllShows() {
         console.log("getAllShows()");
         var elShowArea = $('div.section.showarea');
-        var elNoShows  = $('div.section.noshows');
+        var elNoShows = $('div.section.noshows');
         getShows()
             .done(function (showcount, shows) {
-                if(showcount > 0) {
+                if (showcount > 0) {
                     console.log("Make the show area visible.");
                     elShowArea.removeClass('hidden');
                     elNoShows.addClass('hidden');
@@ -308,7 +308,7 @@ $(document).on('ready', function () {
             })
             .fail(function (showcount, description) {
                 console.log("Error getting shows: " + description);
-                if(showcount === 0) {
+                if (showcount === 0) {
                     elButtonNewShow.trigger('click');
                     elShowArea.addClass('hidden');
                     elNoShows.removeClass('hidden');
@@ -411,7 +411,7 @@ $(document).on('ready', function () {
     }
 
     function setActiveShow(show) {
-        console.log("setActiveShow("+show+")");
+        console.log("setActiveShow(" + show + ")");
         getEpisodes(show)
             .done(function (count, episodes) {
                 console.log("Success...");
@@ -421,6 +421,9 @@ $(document).on('ready', function () {
             })
             .fail(function (msg) {
                 console.log("Error getting shows: " + msg);
+                showBuilder.showAlert(msg, false);
+                gEpisodes()
+                buildEpisodeGallery(elEpisodeGallery, show, {});
             });
     }
 
@@ -428,6 +431,14 @@ $(document).on('ready', function () {
         removeMediaRowsFromEpisodeGallery(elEpisodeGallery);
 
         closeOverlayForms();
+
+        if (episodes.length == 0) {
+            //Open the new episode form
+            elButtonNewEpisode.trigger('click');
+            elEpisodeGallery.append('<div class="row mediarow"><div class="col-md-12 text-center"><p>This show has no episodes.</p></div></div>');
+
+            return false;
+        }
 
         //Each show has a mediarow div and a ul list
         elEpisodeGallery.append('<div class="row mediarow ' + show._id + '"><div class="col-md-12"><ul class="media-list"></ul></div></div>');
@@ -499,7 +510,7 @@ $(document).on('ready', function () {
 
     function getNextEpisodeNumber() {
         console.log(env);
-        if(env.gEpisodes[0]) {
+        if (env.gEpisodes[0]) {
             return +env.gEpisodes[0].number + 1;
         }
         return 1;
@@ -584,6 +595,7 @@ $(document).on('ready', function () {
 
             fileReader.onload = function (fileLoadedEvent) {
                 $('#newEpisodeForm img.albumart').attr('src', fileLoadedEvent.target.result);
+                $('#newEpisodeForm input#inputEpisodeAlbumArt').attr("value", fileLoadedEvent.target.result);
             };
 
             fileReader.readAsDataURL(file);
