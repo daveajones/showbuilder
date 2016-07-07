@@ -767,6 +767,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         var published = (req.body.published === "true");
         var albumart = req.body.albumart;
         var mediafile = req.body.mediafile;
+        console.log("MEDIAFILE: [![" + req.body.mediafile + "]!]");
         var showid = req.params.showid;
         var dateNow = new Date().toISOString();
 
@@ -820,7 +821,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         //##: See if we have album art
         if (albumart != "") {
             var base64Data = albumart.replace(/^data:image\/png;base64,/, "");
-            console.log("BASE64 Image: " + base64Data);
+            //console.log("BASE64 Image: " + base64Data);
             //TODO: Handle file here
             // require("fs").writeFile("/tmp/out.png", base64Data, 'base64', function (err) {
             //     console.log(err);
@@ -1001,6 +1002,15 @@ router.get('/episodes/:showid', function (req, res, next) {
             res.setHeader('Content-Type', 'application/json');
             res.status(401);
             res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        //Must have a showid
+        if (!req.params.showid) {
+            console.log("ERROR: Invalid show id.");
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid show id."}));
             return false;
         }
 

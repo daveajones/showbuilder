@@ -27,13 +27,20 @@ $(document).on('ready', function () {
     var elButtonNewEpisode = $('button.newEpisode');
     var elButtonNewShow = $('a.newShow');
 
-    //showAlert("test")
+
+    /* Build initial show drop-down selector and show initial episode list*/
+    /* If there is a hash show id then load that show */
+    if (window.location.hash) {
+        //Get the show id from the hash
+        var showid = window.location.hash.substring(1);
+
+        getAllShows(showid);
+    } else {
+        getAllShows();
+    }
 
     /* TODO: remove this - DEBUG: Clear any forms to make sure caching doesn't mess us up */
     clearForm('#newEpisodeForm');
-
-    /* Build initial show drop-down selector and show initial episode list*/
-    getAllShows();
 
     /* Form overlay toggle hooks debounced */
     resizeFormOverlays();
@@ -293,8 +300,10 @@ $(document).on('ready', function () {
         return deferredObject.promise();
     }
 
-    function getAllShows() {
-        console.log("getAllShows()");
+    function getAllShows(showid) {
+        showLoadingScreen();
+
+        console.log("getAllShows(" + showid + ")");
         var elShowArea = $('div.section.showarea');
         var elNoShows = $('div.section.noshows');
         getShows()
@@ -307,7 +316,18 @@ $(document).on('ready', function () {
 
                 env.gShows = shows;
                 buildShowSelector(elShowSelector, shows[0], shows);
-                setActiveShow(shows[0]);
+
+                if (typeof showid !== "undefined") {
+                    for (i = 0; i < shows.length; i++) {
+                        if (shows[i]._id == showid) {
+                            setActiveShow(shows[i]);
+                            break;
+                        }
+                    }
+                } else {
+                    setActiveShow(shows[0]);
+                }
+                hideLoadingScreen();
             })
             .fail(function (showcount, description) {
                 console.log("Error getting shows: " + description);
@@ -316,6 +336,7 @@ $(document).on('ready', function () {
                     elShowArea.addClass('hidden');
                     elNoShows.removeClass('hidden');
                 }
+                hideLoadingScreen();
             });
     }
 
@@ -377,7 +398,6 @@ $(document).on('ready', function () {
             var title = show.title;
             var id = show._id;
 
-
             //Rebuild the show selector to exclude the now selected show
             buildShowSelector(elDropdownParent, show, shows);
 
@@ -386,6 +406,9 @@ $(document).on('ready', function () {
             $('.showSelector').removeClass('hide');
             $(this).addClass('hide');
 
+            window.location.hash = id;
+            elDropdownList.dropdown('toggle');
+            return false;
         });
 
     }
@@ -656,4 +679,11 @@ $(document).on('ready', function () {
         return new Date(date).toLocaleFormat('%B %e @ %l:%M %p')
     }
 
+    function showLoadingScreen() {
+        $('div#loading.container').show();
+    }
+
+    function hideLoadingScreen() {
+        $('div#loading.container').hide();
+    }
 });
