@@ -461,7 +461,7 @@ $(document).on('ready', function () {
         if (episodes.length == 0) {
             //Open the new episode form
             elButtonNewEpisode.trigger('click');
-            elEpisodeGallery.append('<div class="row mediarow"><div class="col-md-12 text-center"><p>This show has no episodes.</p></div></div>');
+            elEpisodeGallery.append('<div class="row mediarow"><div class="col-md-12 text-center"><p>This show has no episodes yet. Get busy!</p></div></div>');
 
             return false;
         }
@@ -543,14 +543,10 @@ $(document).on('ready', function () {
     }
 
     function addEpisodeToGuide(showname, number, title, link, description, explicit, albumart, mp3url, published) {
-        var dateoptions = {
-            year: "numeric", month: "short",
-            day: "numeric", hour: "2-digit", minute: "2-digit"
-        };
         var pubstatus = "unpublished";
         var pubbtnclass = "btn-publish btn-success";
         var pubbtntext = "Publish";
-        var savedate = new Date().toLocaleDateString("en-us", dateoptions);
+        var savedate = moment().format('MMMM Do YYYY, h:mm:ss a');
         var medialist = 'div#episodeList .mediarow.' + showname + ' ul.media-list';
         var liEpisodeSelector = 'li.media.episode' + number;
 
@@ -676,7 +672,8 @@ $(document).on('ready', function () {
     }
 
     function dateModified(date) {
-        return new Date(date).toLocaleFormat('%B %e @ %l:%M %p')
+        return moment(date).format('MMMM Do @ h:mm a');
+        //return new Date(date).toLocaleFormat('%B %e @ %l:%M %p');
     }
 
     function showLoadingScreen() {
