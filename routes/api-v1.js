@@ -3,6 +3,7 @@ var router = express.Router();
 var bcrypt = require('bcrypt');
 var validator = require('validate-email');
 var showBuilder = require('../showBuilder');
+var ObjectId = require('mongodb').ObjectID;
 
 
 /***** User management *****/
@@ -341,7 +342,6 @@ router.get('/account', function (req, res, next) {
         }
 
         //##: Connect to db and search for a show with this title/showid
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -451,7 +451,6 @@ router.post('/show', function (req, res, next) {
         }
 
         //##: Connect to db and search for a show with this title already
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -530,7 +529,6 @@ router.get('/show/:showid', function (req, res, next) {
         }
 
         //##: Connect to db and search for a show with this title/showid
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -615,7 +613,6 @@ router.delete('/show/:showid', function (req, res, next) {
         }
 
         //##: Connect to db and search for a show with this title/showid
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -698,7 +695,6 @@ router.get('/shows', function (req, res, next) {
         }
 
         //##: Connect to db and search for a show with this title/shortname
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -829,7 +825,6 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         }
 
         //##: Connect to db and search for a show with this title already
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -866,13 +861,13 @@ router.put('/episode/:showid/:number', function (req, res, next) {
                     };
                     collectionEpisodes.update({
                         "showid": showObjectId,
-                        "number": number,
+                        "number": Number(number),
                         "userid": userObjectId
                     }, objectToInsert, {w: 1}, function (e, result) {
                         var objectId = objectToInsert._id;
 
                         //##: DEBUG
-                        console.log("DEBUG(database) UPDATE EPISODE: [" + number + " | " + title + "]");
+                        console.log("UPDATE EPISODE: " + JSON.stringify(objectToInsert, null, 3));
 
                         //##: Report success
                         res.setHeader('Content-Type', 'application/json');
@@ -898,7 +893,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
                         var objectId = objectToInsert._id;
 
                         //##: DEBUG
-                        console.log("DEBUG(database) NEW EPISODE: [" + number + " | " + title + "]");
+                        console.log("INSERT EPISODE: " + JSON.stringify(objectToInsert, null, 3));
 
                         //##: Report success
                         res.setHeader('Content-Type', 'application/json');
@@ -946,7 +941,6 @@ router.get('/episode/:showid/:number', function (req, res, next) {
         }
 
         //##: Connect to db and search for a show with this title/shortname
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -1018,7 +1012,6 @@ router.get('/episodes/:showid', function (req, res, next) {
         console.log("SHOWID " + showid);
 
         //##: Connect to db and search for all episodes with this shortname
-        var ObjectId = require('mongodb').ObjectID;
         var MongoClient = require('mongodb').MongoClient;
         MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
             if (err) {
@@ -1031,7 +1024,11 @@ router.get('/episodes/:showid', function (req, res, next) {
             //##: Find user
             var collectionEpisodes = db.collection(process.env.cgsbCollectionEpisodes);
             var showObjectId = new ObjectId(showid);
-            collectionEpisodes.find({"userid": userid, "showid": showObjectId}).sort({number: -1}).toArray(function (err, records) {
+            var userObjectId = new ObjectId(userid);
+            collectionEpisodes.find({
+                "userid": userObjectId,
+                "showid": showObjectId
+            }).sort({number: -1}).toArray(function (err, records) {
 
                 //##: If no episodes exist for this show id then bail
                 if (records.length === 0) {
@@ -1066,5 +1063,121 @@ router.get('/episodes/:showid', function (req, res, next) {
     });
 });
 
+/* Delete an episode for the user of this token */
+router.delete('/episode/:showid/:number', function (req, res, next) {
+    console.log("HEADER: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        var showid = req.params.showid;
+        var number = req.params.number;
+
+        //##: Need to have a show show id for lookup
+        if (!showid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid show id."}));
+            return false;
+        }
+
+        //##: Need to have an episode number for lookup
+        if (!number) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid episode number."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show id and episode number
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find a show with the given user id and show id and episode number
+            var collectionEpisodes = db.collection(process.env.cgsbCollectionEpisodes);
+            var objectShowId = new ObjectId(showid);
+            var objectUserId = new ObjectId(userid);
+            objectToDelete = {
+                "showid": objectShowId,
+                "userid": objectUserId,
+                "number": Number(number),
+                "published": false
+            };
+            console.log("DELETE EPISODE: " + JSON.stringify(objectToDelete, null, 3));
+            collectionEpisodes.find(objectToDelete).toArray(function (err, records) {
+
+                //##: If no episode is found, give back an error
+                if (records.length === 0) {
+                    console.log("Couldn't find episode in database to delete.");
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "count": 0,
+                        "description": "No episode exists with number: [" + number + "]."
+                    }));
+                    return false;
+                }
+
+                console.log("Found episode to delete: " + records.length);
+
+                //##: Delete the episode
+                if (records.length === 1) {
+                    console.log("DEBUG(database) Found episode to delete: [" + records[0]._id + "]");
+
+                    collectionEpisodes.deleteMany(objectToDelete, {w: 1}, function (err, results) {
+                        if (err) {
+                            console.log("DELETE EPISODE: " + JSON.stringify(objectToDelete, null, 3));
+
+                            //##: Report failure
+                            res.setHeader('Content-Type', 'application/json');
+                            res.status(200);
+                            res.send(JSON.stringify({
+                                "status": false,
+                                "showid": showid,
+                                "number": number,
+                                "description": "Error deleting episode number: [" + number + " | " + showid + "]"
+                            }));
+                            return false;
+                        } else {
+                            //##: Report success
+                            res.setHeader('Content-Type', 'application/json');
+                            res.status(200);
+                            res.send(JSON.stringify({
+                                "status": true,
+                                "id": showid,
+                                "number": number,
+                                "episode": records[0],
+                                "description": "Episode removed."
+                            }));
+                            return false;
+                        }
+                    });
+                } else {
+                    console.log("Too many records were returned trying to delete.");
+
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(422);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "count": 0,
+                        "description": "Too many episodes returned for number: [" + number + "]."
+                    }));
+                    return false;
+                }
+            });
+        });
+    });
+});
 
 module.exports = router;

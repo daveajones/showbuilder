@@ -66,10 +66,18 @@ $(document).on('ready', function () {
     /* Episode delete button */
     //TODO: episodes must be renumbered after one is deleted maybe - not sure - depends on publish status
     elEpisodeGallery.on('click', 'a.btn-delete', function () {
-        alert('test');
+        var elEpisode = $(this).parent().parent();
+        var number = elEpisode.data('number');
+        
         //TODO: need ajax and verification here before removing
-        $(this).parent().parent().remove();
-        $(this).blur();
+        deleteEpisode(getCurrentShowId(), number)
+            .done(function (showId, episodeNumber) {
+                elEpisode.remove();
+            })
+            .fail(function (msg) {
+                showAlert(msg, false);
+            });
+        return false;
     });
 
     /* New show dialog */
@@ -475,7 +483,7 @@ $(document).on('ready', function () {
             var episode = episodes[i];
 
             //Add the media block itself for this episode
-            elEpisodeList.append('<li class="media episode' + episode.number + '" data-id="' + episode._id + '"></li>');
+            elEpisodeList.append('<li class="media episode' + episode.number + '" data-number="' + episode.number + '" data-id="' + episode._id + '"></li>');
             var elEpisode = elEpisodeList.find('li.media.episode' + episode.number);
 
             //Note if it's published or not
@@ -682,5 +690,27 @@ $(document).on('ready', function () {
 
     function hideLoadingScreen() {
         $('div#loading.container').hide();
+    }
+
+    function deleteEpisode(showId, episodeNumber) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "DELETE",
+            url: "/api/v1/episode/" + showId + "/" + episodeNumber,
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    deferredObject.resolve(responseData.showid, responseData.number);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            });
+        //Return a promise
+        return deferredObject.promise();
     }
 });
