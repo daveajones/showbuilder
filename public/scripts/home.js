@@ -114,7 +114,8 @@ $(document).on('ready', function () {
         var description = $('#newEpisodeForm.pageOverlay textarea#inputEpisodeDescription').val();
         var explicit = $('#newEpisodeForm.pageOverlay input#inputEpisodeExplicit').val();
         var albumart = $('#newEpisodeForm.pageOverlay img.albumart').attr('src');
-        var link = '#';
+        var epnumber = $('#newEpisodeForm.pageOverlay input.episodeNumber').val();
+        var link = $('#newEpisodeForm.pageOverlay input#inputEpisodeLinkExternal').val();
         var mp3url = '#';
 
         if (!title) {
@@ -122,7 +123,7 @@ $(document).on('ready', function () {
             return false;
         }
 
-        addNewEpisode(showid, getNextEpisodeNumber(), title, link, description, explicit, albumart, mp3url, false)
+        addNewEpisode(showid, epnumber, title, link, description, explicit, albumart, mp3url, false)
             .done(function (episodeid) {
                 showBuilder.showAlert("Episode added", true);
                 setActiveShow(env.gActiveShow);
@@ -139,7 +140,8 @@ $(document).on('ready', function () {
         var description = $('#newEpisodeForm.pageOverlay textarea#inputEpisodeDescription').val();
         var explicit = $('#newEpisodeForm.pageOverlay input#inputEpisodeExplicit').val();
         var albumart = $('#newEpisodeForm.pageOverlay img.albumart').attr('src');
-        var link = '#';
+        var epnumber = $('#newEpisodeForm.pageOverlay input.episodeNumber').val();
+        var link = $('#newEpisodeForm.pageOverlay input#inputEpisodeLinkExternal').val();
         var mp3url = '#';
 
         if (!title) {
@@ -147,7 +149,7 @@ $(document).on('ready', function () {
             return false;
         }
 
-        addNewEpisode(showid, getNextEpisodeNumber(), title, link, description, explicit, albumart, mp3url, true)
+        addNewEpisode(showid, epnumber, title, link, description, explicit, albumart, mp3url, true)
             .done(function (episodeid) {
                 showBuilder.showAlert("Episode added", true);
                 setActiveShow(getCurrentShowId());
