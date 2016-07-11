@@ -42,6 +42,9 @@ $(document).ready(function() {
                 $("input#inputLastName").val(responseData.account.lastname);
                 $("input#inputPersonalSite").val(responseData.account.personalsite);
             }
+        })
+        .fail(function (responseData) {
+            showAlert(responseData.description);
         });
     
     // bind form using 'ajaxForm'
