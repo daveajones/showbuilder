@@ -531,7 +531,7 @@ $(document).on('ready', function () {
             //Script & Shownotes controls
             elEpisodeBody.append('<h4 class="showEditControls"></h4>');
             elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editScript" href="/script?sh=' + show._id + '&ep=' + episode.number + '"> Script</a> ');
-            elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editShownotes" href="/shownotes/' + show._id + '/' + episode.number + '"> Shownotes</a> ');
+            elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editShownotes" href="/shownotes?sh=' + show._id + '&ep=' + episode.number + '"> Shownotes</a> ');
 
             console.log("EPISODE: " + episode);
         }
