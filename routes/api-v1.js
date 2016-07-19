@@ -1180,4 +1180,120 @@ router.delete('/episode/:showid/:number', function (req, res, next) {
     });
 });
 
+
+/***** Shownotes management *****/
+
+/* Create or update shownotes for an episode */
+router.put('/shownotes/:showid/:number', function (req, res, next) {
+    console.log("HEADERS: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        //TODO: these user submitted values need a lot of checking for safety
+        var number = req.params.number;
+        var showid = req.params.showid;
+        var opml = req.body.opml;
+        var dateNow = new Date().toISOString();
+
+        //##: Need to have a valid episode number
+        if (!number || isNaN(number)) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "That episode number is not valid."}));
+            return false;
+        }
+
+        //##: Need to have a valid opml structure
+        if (!opml || typeof opml !== "string") {
+            //set a blank opml if none was given
+            opml = "";
+        }
+
+        //##: Need to have a valid shortname
+        if (!showid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "That shortname is not valid."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title already
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find episode
+            var collectionShownotes = db.collection(process.env.cgsbCollectionShownotes);
+            var showObjectId = new ObjectId(showid);
+            var userObjectId = new ObjectId(userid);
+            collectionShownotes.find({
+                "showid": showObjectId,
+                "number": number,
+                "opml": opml,
+                "userid": userObjectId
+            }).toArray(function (err, records) {
+
+                //##: If a record already existed this should be an update
+                if (records.length !== 0) {
+                    //##: Update this show
+                    var objectToInsert = {
+                        "userid": userObjectId,
+                        "number": Number(number),
+                        "opml": opml,
+                        "dateModified": dateNow,
+                        "showid": showObjectId
+                    };
+                    collectionShownotes.update({
+                        "showid": showObjectId,
+                        "number": Number(number),
+                        "userid": userObjectId
+                    }, objectToInsert, {w: 1}, function (e, result) {
+                        var objectId = objectToInsert._id;
+
+                        //##: DEBUG
+                        console.log("UPDATE SHOWNOTES: " + JSON.stringify(objectToInsert, null, 3));
+
+                        //##: Report success
+                        res.setHeader('Content-Type', 'application/json');
+                        res.status(200);
+                        res.send(JSON.stringify({"status": true, "id": objectId, "description": "Shownotes updated."}));
+                        return false;
+                    });
+                } else {
+                    //##: Insert this show
+                    var objectToInsert = {
+                        "userid": userid,
+                        "number": Number(number),
+                        "opml": opml,
+                        "dateModified": dateNow,
+                        "showid": showObjectId
+                    };
+                    collectionShownotes.insert(objectToInsert, {w: 1}, function (e, result) {
+                        var objectId = objectToInsert._id;
+
+                        //##: DEBUG
+                        console.log("INSERT SHOWNOTES: " + JSON.stringify(objectToInsert, null, 3));
+
+                        //##: Report success
+                        res.setHeader('Content-Type', 'application/json');
+                        res.status(200);
+                        res.send(JSON.stringify({"status": true, "id": objectId, "description": "Shownotes created."}));
+                        return false;
+                    });
+                }
+            });
+        });
+    });
+});
+
 module.exports = router;

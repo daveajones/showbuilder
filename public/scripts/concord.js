@@ -420,7 +420,7 @@ function ConcordEditor(root, concordInstance) {
         node.addClass("concord-node");
         var wrapper = $("<div class='concord-wrapper'></div>");
         var iconName = "caret-right";
-        var icon = "<i" + " class=\"node-icon icon-" + iconName + "\"><" + "/i>";
+        var icon = "<i" + " class=\"node-icon fa fa-" + iconName + "\"><" + "/i>";
         wrapper.append(icon);
         wrapper.addClass("type-icon");
         var text = $("<div class='concord-text' contenteditable='true'></div>");
@@ -706,7 +706,7 @@ function ConcordEditor(root, concordInstance) {
                 iconName = nodeIcon;
             }
         }
-        var icon = "<i" + " class=\"node-icon icon-" + iconName + "\"><" + "/i>";
+        var icon = "<i" + " class=\"node-icon fa fa-" + iconName + "\"><" + "/i>";
         wrapper.append(icon);
         wrapper.addClass("type-icon");
         if (attributes["isComment"] == "true") {
@@ -1773,7 +1773,7 @@ function ConcordOp(root, concordInstance, _cursor) {
         node.addClass("concord-level-" + level);
         var wrapper = $("<div class='concord-wrapper'></div>");
         var iconName = "caret-right";
-        var icon = "<i" + " class=\"node-icon icon-" + iconName + "\"><" + "/i>";
+        var icon = "<i" + " class=\"node-icon fa fa-" + iconName + "\"><" + "/i>";
         wrapper.append(icon);
         wrapper.addClass("type-icon");
         var text = $("<div class='concord-text' contenteditable='true'></div>");
@@ -2572,7 +2572,7 @@ function ConcordOpAttributes(concordInstance, cursor) {
                     iconName = value;
                 }
                 if (iconName) {
-                    var icon = "<i" + " class=\"node-icon icon-" + iconName + "\"><" + "/i>";
+                    var icon = "<i" + " class=\"node-icon fa fa-" + iconName + "\"><" + "/i>";
                     wrapper.children(".node-icon:first").replaceWith(icon);
                 }
             }
@@ -2617,7 +2617,7 @@ function ConcordOpAttributes(concordInstance, cursor) {
                     iconName = value;
                 }
                 if (iconName) {
-                    var icon = "<i" + " class=\"node-icon icon-" + iconName + "\"><" + "/i>";
+                    var icon = "<i" + " class=\"node-icon fa fa-" + iconName + "\"><" + "/i>";
                     wrapper.children(".node-icon:first").replaceWith(icon);
                 }
             }
@@ -2674,7 +2674,7 @@ function ConcordOpAttributes(concordInstance, cursor) {
                 iconName = value;
             }
             if (iconName) {
-                var icon = "<i" + " class=\"node-icon icon-" + iconName + "\"><" + "/i>";
+                var icon = "<i" + " class=\"node-icon fa fa-" + iconName + "\"><" + "/i>";
                 wrapper.children(".node-icon:first").replaceWith(icon);
             }
         }
@@ -2903,7 +2903,7 @@ function Op(opmltext) {
                         cursor.removeClass("dirty");
                         cursor.removeClass("collapsed");
                         concordInstance.op.setLineText("");
-                        var icon = "<i" + " class=\"node-icon icon-caret-right\"><" + "/i>";
+                        var icon = "<i" + " class=\"node-icon fa fa-caret-right\"><" + "/i>";
                         cursor.children(".concord-wrapper").children(".node-icon").replaceWith(icon);
                         clonedCursor.insertBefore(cursor);
                         concordInstance.op.attributes.makeEmpty();

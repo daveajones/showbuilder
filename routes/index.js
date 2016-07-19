@@ -111,6 +111,18 @@ router.get('/script', function (req, res, next) {
     }
 });
 
+router.get('/shownotes', function (req, res, next) {
+    console.log("SHOWNOTES request: GET /shownotes");
+    if (req.session.token) {
+        //TODO: !!! This token check needs a lot more validation tests
+        console.log("  -- found a token, now checking if it's valid.");
+        showBuilder.sessionIsValid(req.session.token, req, res, showBuilder.renderTemplateOrRedirect, 'shownotes', '/cleanSession');
+    } else {
+        console.log("  -- no token found. Rendering index jade.");
+        res.render('index', {title: process.env.cgsbAppTitle, systemfqdn: process.env.cgsbSystemFQDN});
+    }
+});
+
 function activateAccount(emailIsValid, res) {
     if(emailIsValid) {
         res.redirect('/home');

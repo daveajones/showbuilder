@@ -11,6 +11,8 @@ process.env.cgsbCollectionEpisodes = "episodes";
 process.env.cgsbCollectionAccounts = "accounts";
 process.env.cgsbCollectionOptions = "options";
 process.env.cgsbCollectionServices = "services";
+process.env.cgsbCollectionScripts = "scripts";
+process.env.cgsbCollectionShownotes = "shownotes";
 process.env.cgsbSystemFQDN = "http://localhost:3000";
 
 process.env.cgsbSecurityCookieParserKey = "<changethisvalue>";

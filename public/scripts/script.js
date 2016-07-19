@@ -15,6 +15,9 @@ $(document).ready(function () {
     });
     opXmlToOutline(initialOpmltext);
 
+    //set the page title
+    $('li#showSelector.dropdown a span.name').text('Script');
+
     //Move cursors within a content editable element
     //___via: http://stackoverflow.com/questions/1125292/how-to-move-cursor-to-end-of-contenteditable-entity
     function moveCursorToStart(contentEditableElement) {

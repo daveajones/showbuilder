@@ -86,7 +86,10 @@ mixin navbar(title, name, section)
                     ul.nav.navbar-nav
                         li#showSelector.dropdown
                             a(href='/')
-                                | #{title} - #{name}
+                                span.title
+                                | #{title} -
+                                span.name
+                                | #{name}
                     +navbar_part_usermenu(name, section)
 
 mixin login_form(title)
