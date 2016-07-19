@@ -29,7 +29,8 @@ mixin navbar_part_usermenu(name, section)
     ul.nav.navbar-nav.navbar-right
         li.dropdown
             a#userNavMenu.dropdown-toggle(href='#', data-toggle='dropdown', role='button', aria-haspopup='true', aria-expanded='false')
-                | #{name}
+                span
+                    | #{name}
                 i.fa.fa-user.fa-fw
             ul.dropdown-menu
                 li
@@ -85,7 +86,7 @@ mixin navbar(title, name, section)
                     ul.nav.navbar-nav
                         li#showSelector.dropdown
                             a(href='/')
-                                | #{title}
+                                | #{title} - #{name}
                     +navbar_part_usermenu(name, section)
 
 mixin login_form(title)

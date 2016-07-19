@@ -35,6 +35,41 @@ $(document).ready(function() {
         elAlertBar.find('div.alert').removeClass('hide');
 
         return true;
-    }
+    };
+
+    showBuilder.apiGetAccountDetails = function () {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "GET",
+            url: "/api/v1/account",
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    console.log("DEBUG: " + typeof responseData.status);
+                    deferredObject.resolve(responseData.account);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            });
+        //Return a promise
+        return deferredObject.promise();
+    };
+
+    showBuilder.updateUIDetails = function () {
+        showBuilder.apiGetAccountDetails()
+            .done(function (account) {
+                $('a#userNavMenu').find('span').html(account.firstname + " " + account.lastname);
+            })
+            .fail(function (description) {
+                showBuilder.showAlert(description);
+            });
+    };
+
+    showBuilder.updateUIDetails();
 
 });

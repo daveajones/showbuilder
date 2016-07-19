@@ -1,0 +1,28 @@
+//
+   Created by dave on 6/3/16.
+extends layout
+
+block script
+    link(href='/style/concord.css', rel='stylesheet')
+    script(src='/scripts/concord.js')
+    script(src='/scripts/concordUtils.js')
+    script(src='/scripts/script.js')
+
+block content
+    +navbar(title, username)
+
+    .section.options
+        .container
+            .row.save
+                .col-md-12
+                    .btn-toolbar
+                        button.save.btn.btn-default.disabled.pull-right(href='#')
+                            | Save
+                        a.back.btn.btn-default.pull-right(href='/home')
+                            i.fa.fa-fw.fa-chevron-left
+                            | Home
+
+            .row.top-buffer
+                .col-md-10.col-md-offset-1
+                    .divOutlinerContainer
+                        #outliner

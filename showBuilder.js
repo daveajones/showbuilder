@@ -19,7 +19,12 @@ module.exports = {
     //##: Renders a jade template if authorized or redirects if not
     renderTemplateOrRedirect: function (authorized, res, onSuccess, onFailure) {
         if (authorized) {
-            res.render(onSuccess, {title: process.env.cgsbAppTitle, systemfqdn:process.env.cgsbSystemFQDN, username:"Dave Jones"});
+            //var accountDetails = showBuilder.getAccountDetails
+            res.render(onSuccess, {
+                title: process.env.cgsbAppTitle,
+                systemfqdn: process.env.cgsbSystemFQDN,
+                username: ""
+            });
         } else {
             res.redirect(onFailure);
         }

@@ -376,7 +376,7 @@ router.get('/account', function (req, res, next) {
                     res.send(JSON.stringify({
                         "status": false,
                         "count": 0,
-                        "description": "No user exists with id: [" + userid + "]."
+                        "description": "No account details exist for user id: [" + userid + "]."
                     }));
                     return false;
                 }

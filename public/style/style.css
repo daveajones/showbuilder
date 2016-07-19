@@ -8,6 +8,10 @@
     z-index: 9000;
 }
 
+.top-buffer {
+    margin-top: 20px;
+}
+
 .noauth.navbar .navbar-nav {
     display: inline-block;
     float: none;

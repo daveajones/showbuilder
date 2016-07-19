@@ -234,6 +234,8 @@ $(document).on('ready', function () {
     //-----------------------------------
     //Functions -------------------------
     //-----------------------------------
+
+
     function closeOverlayForms() {
         elPageOverlay.collapse('hide');
     }
@@ -528,8 +530,8 @@ $(document).on('ready', function () {
 
             //Script & Shownotes controls
             elEpisodeBody.append('<h4 class="showEditControls"></h4>');
-            elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editScript" href="#"> Script</a> ');
-            elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editShownotes" href="#"> Shownotes</a> ');
+            elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editScript" href="/script?sh=' + show._id + '&ep=' + episode.number + '"> Script</a> ');
+            elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editShownotes" href="/shownotes/' + show._id + '/' + episode.number + '"> Shownotes</a> ');
 
             console.log("EPISODE: " + episode);
         }
@@ -598,7 +600,7 @@ $(document).on('ready', function () {
                 jsmediatags.read(file, {
                     onSuccess: function (tag) {
                         var tags = tag.tags;
-                        alert(tags.artist + " - " + tags.title + ", " + tags.album);
+                        //alert(tags.artist + " - " + tags.title + ", " + tags.album);
 
                         $("div#newEpisodeForm input#inputEpisodeTitle").val(tags.title);
                         $("div#newEpisodeForm textarea#inputEpisodeDescription").text((tags.comment || {}).text || "");

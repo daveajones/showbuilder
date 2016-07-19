@@ -99,6 +99,18 @@ router.get('/services', function (req, res, next) {
     }
 });
 
+router.get('/script', function (req, res, next) {
+    console.log("SCRIPT request: GET /script");
+    if (req.session.token) {
+        //TODO: !!! This token check needs a lot more validation tests
+        console.log("  -- found a token, now checking if it's valid.");
+        showBuilder.sessionIsValid(req.session.token, req, res, showBuilder.renderTemplateOrRedirect, 'script', '/cleanSession');
+    } else {
+        console.log("  -- no token found. Rendering index jade.");
+        res.render('index', {title: process.env.cgsbAppTitle, systemfqdn: process.env.cgsbSystemFQDN});
+    }
+});
+
 function activateAccount(emailIsValid, res) {
     if(emailIsValid) {
         res.redirect('/home');
