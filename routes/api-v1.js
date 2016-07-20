@@ -1296,4 +1296,85 @@ router.put('/shownotes/:showid/:number', function (req, res, next) {
     });
 });
 
+/* Retrieve the shownotes for an episode of a certain show */
+router.get('/shownotes/:showid/:number', function (req, res, next) {
+    console.log("HEADER: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        var showid = req.params.showid;
+        var number = req.params.number;
+
+        console.log("Request for shownotes of episode: " + number + " of show: " + showid + " for user: " + userid);
+
+        //##: Need to have a show id for lookup
+        if (!showid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid show id."}));
+            return false;
+        }
+
+        //##: Need to have an episode number too
+        //TODO: this link checking needs more validation
+        if (!number) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "That episode number is not valid."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title/shortname
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find episode
+            var collectionShownotes = db.collection(process.env.cgsbCollectionShownotes);
+            var showObjectId = new ObjectId(showid);
+            var userObjectId = new ObjectId(userid);
+            collectionShownotes.find({
+                "showid": showObjectId,
+                "userid": userObjectId,
+                "number": number
+            }).toArray(function (err, records) {
+
+                //##: If no record already existed for this show title give back an error
+                if (records.length === 0) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "description": "No shownotes exist with those parameters."
+                    }));
+                    return false;
+                }
+
+                //##: DEBUG
+                console.log("DEBUG(database) Found shownotes: [" + records[0] + "]");
+
+                //##: Report success
+                res.setHeader('Content-Type', 'application/json');
+                res.status(200);
+                res.send(JSON.stringify({
+                    "status": true,
+                    "shownotes": records[0].opml,
+                    "description": "Shownotes found."
+                }));
+                return false;
+            });
+        });
+    });
+});
+
 module.exports = router;

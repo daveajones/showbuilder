@@ -8,6 +8,32 @@ var showBuilder = showBuilder || {};
 $(document).ready(function() {
     console.log("client-env.js");
 
+    showBuilder.apiPutShownotes = function (showid, epnum, opml) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "PUT",
+            url: "/api/v1/shownotes/" + showid + "/" + epnum,
+            data: {
+                "opml": opml
+            },
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    console.log("DEBUG: " + typeof responseData.status);
+                    deferredObject.resolve(responseData.account);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            });
+        //Return a promise
+        return deferredObject.promise();
+    };
+
     showBuilder.showAlert = function (msg, status) {
         var alertclasses = ["alert-success", "alert-info", "alert-warning", "alert-danger"];
         var elAlertBar = $('.alertbar');
@@ -61,6 +87,7 @@ $(document).ready(function() {
     };
 
     showBuilder.updateUIDetails = function () {
+        //TODO: script and shownotes navbar title updates should happen here
         showBuilder.apiGetAccountDetails()
             .done(function (account) {
                 $('a#userNavMenu').find('span').html(account.firstname + " " + account.lastname);
