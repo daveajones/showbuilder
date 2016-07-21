@@ -442,7 +442,7 @@ router.post('/show', function (req, res, next) {
 
         //##: Need to have a valid show link either external or internal
         //TODO: this link checking needs more validation (starts with http?)
-        if (!link || link.length < 1) {
+        if (link.length > 1 && link.indexOf('http') != 0) {
             //TODO: Generate an internal link if one was not given
             res.setHeader('Content-Type', 'application/json');
             res.status(422);
@@ -781,13 +781,13 @@ router.put('/episode/:showid/:number', function (req, res, next) {
 
         //##: Need to have a valid episode link either external or internal
         //TODO: this link checking needs more validation like ensuring http: at the beginning
-        if (!link || link.length < 1) {
+        if (link.length > 1 && link.indexOf('http') != 0) {
             //TODO: if no external link was given we need to create an internal one
             res.setHeader('Content-Type', 'application/json');
             res.status(422);
             res.send(JSON.stringify({
                 "status": false,
-                "description": "That show link is not valid."
+                "description": "That episode link is not valid."
             }));
             return false;
         }
@@ -1238,13 +1238,12 @@ router.put('/shownotes/:showid/:number', function (req, res, next) {
             var userObjectId = new ObjectId(userid);
             collectionShownotes.find({
                 "showid": showObjectId,
-                "number": number,
-                "opml": opml,
+                "number": Number(number),
                 "userid": userObjectId
             }).toArray(function (err, records) {
 
                 //##: If a record already existed this should be an update
-                if (records.length !== 0) {
+                if (records.length > 0) {
                     //##: Update this show
                     var objectToInsert = {
                         "userid": userObjectId,
@@ -1346,11 +1345,11 @@ router.get('/shownotes/:showid/:number', function (req, res, next) {
             collectionShownotes.find({
                 "showid": showObjectId,
                 "userid": userObjectId,
-                "number": number
+                "number": Number(number)
             }).toArray(function (err, records) {
 
                 //##: If no record already existed for this show title give back an error
-                if (records.length === 0) {
+                if (records.length == 0) {
                     res.setHeader('Content-Type', 'application/json');
                     res.status(404);
                     res.send(JSON.stringify({
@@ -1361,14 +1360,14 @@ router.get('/shownotes/:showid/:number', function (req, res, next) {
                 }
 
                 //##: DEBUG
-                console.log("DEBUG(database) Found shownotes: [" + records[0] + "]");
+                console.log("DEBUG(database) Found shownotes: [" + records[0].opml + "]");
 
                 //##: Report success
                 res.setHeader('Content-Type', 'application/json');
                 res.status(200);
                 res.send(JSON.stringify({
                     "status": true,
-                    "shownotes": records[0].opml,
+                    "opml": records[0].opml,
                     "description": "Shownotes found."
                 }));
                 return false;

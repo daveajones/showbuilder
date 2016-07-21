@@ -25,10 +25,40 @@ $(document).ready(function() {
             .done(function (responseData) {
                 if (responseData.status) {
                     console.log("DEBUG: " + typeof responseData.status);
-                    deferredObject.resolve(responseData.account);
+                    deferredObject.resolve(responseData);
                 } else {
                     deferredObject.reject(responseData.description);
                 }
+            })
+            .fail(function (responseData) {
+                deferredObject.reject(responseData.description);
+            });
+        //Return a promise
+        return deferredObject.promise();
+    };
+
+    showBuilder.apiGetShownotes = function (showid, epnum) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "GET",
+            url: "/api/v1/shownotes/" + showid + "/" + epnum,
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    console.log("DEBUG: " + typeof responseData.status);
+                    deferredObject.resolve(responseData);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            })
+            .fail(function (responseData) {
+                console.log("Get shownotes fail");
+                deferredObject.reject(responseData.description);
             });
         //Return a promise
         return deferredObject.promise();

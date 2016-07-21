@@ -26,7 +26,7 @@ $(document).ready(function () {
         else {
             return results[1] || 0;
         }
-    }
+    };
 
     var showid = decodeURIComponent($.urlParam('sh'));
     var epnum = decodeURIComponent($.urlParam('ep'));
@@ -149,18 +149,33 @@ $(document).ready(function () {
     });
 
     //Load the existing script here if there is one
-
-    opSetTextMode(true);
+    showBuilder.apiGetShownotes(showid, epnum)
+        .done(function (shownotes) {
+            console.log("Found an opml structure.");
+            //console.log(opml);
+            opXmlToOutline(shownotes.opml);
+            opSetTextMode(true);
+            startAutosave();
+        })
+        .fail(function (description) {
+            console.log(description);
+            opXmlToOutline(initialOpmltext);
+            opSetTextMode(true);
+            startAutosave();
+        });
 
     //Start autosaving
-    $('div.concord-text').on('keyup', function () {
-        if (autosave !== null) clearTimeout(autosave);
+    function startAutosave() {
+        $(document).on('keyup', 'div.concord-text', function () {
 
-        autosave = setTimeout(function () {
-            var opml = opOutlineToXml("", "", "");
-            alert(showid + " | " + epnum);
-            console.log("OPML: " + opml);
-            showBuilder.apiPutShownotes(showid, epnum, opml);
-        }, 3000);
-    })
+            clearTimeout(autosave);
+
+            autosave = setTimeout(function () {
+                var opml = opOutlineToXml("", "", "");
+                console.log("OPML: " + opml);
+                showBuilder.apiPutShownotes(showid, epnum, opml);
+            }, 3000);
+        })
+    }
+
 });
