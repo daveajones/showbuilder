@@ -64,6 +64,62 @@ $(document).ready(function() {
         return deferredObject.promise();
     };
 
+    showBuilder.apiPutScript = function (showid, epnum, opml) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "PUT",
+            url: "/api/v1/script/" + showid + "/" + epnum,
+            data: {
+                "opml": opml
+            },
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    console.log("DEBUG: " + typeof responseData.status);
+                    deferredObject.resolve(responseData);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            })
+            .fail(function (responseData) {
+                deferredObject.reject(responseData.description);
+            });
+        //Return a promise
+        return deferredObject.promise();
+    };
+
+    showBuilder.apiGetScript = function (showid, epnum) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "GET",
+            url: "/api/v1/script/" + showid + "/" + epnum,
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    console.log("DEBUG: " + typeof responseData.status);
+                    deferredObject.resolve(responseData);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            })
+            .fail(function (responseData) {
+                console.log("Get script fail");
+                deferredObject.reject(responseData.description);
+            });
+        //Return a promise
+        return deferredObject.promise();
+    };
+
     showBuilder.showAlert = function (msg, status) {
         var alertclasses = ["alert-success", "alert-info", "alert-warning", "alert-danger"];
         var elAlertBar = $('.alertbar');

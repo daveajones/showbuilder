@@ -1376,4 +1376,200 @@ router.get('/shownotes/:showid/:number', function (req, res, next) {
     });
 });
 
+
+/***** Script management *****/
+
+/* Create or update script for an episode */
+router.put('/script/:showid/:number', function (req, res, next) {
+    console.log("HEADERS: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        //TODO: these user submitted values need a lot of checking for safety
+        var number = req.params.number;
+        var showid = req.params.showid;
+        var opml = req.body.opml;
+        var dateNow = new Date().toISOString();
+
+        //##: Need to have a valid episode number
+        if (!number || isNaN(number)) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "That episode number is not valid."}));
+            return false;
+        }
+
+        //##: Need to have a valid opml structure
+        if (!opml || typeof opml !== "string") {
+            //set a blank opml if none was given
+            opml = "";
+        }
+
+        //##: Need to have a valid shortname
+        if (!showid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "That shortname is not valid."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title already
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find episode
+            var collectionScript = db.collection(process.env.cgsbCollectionScripts);
+            var showObjectId = new ObjectId(showid);
+            var userObjectId = new ObjectId(userid);
+            collectionScript.find({
+                "showid": showObjectId,
+                "number": Number(number),
+                "userid": userObjectId
+            }).toArray(function (err, records) {
+
+                //##: If a record already existed this should be an update
+                if (records.length > 0) {
+                    //##: Update this show
+                    var objectToInsert = {
+                        "userid": userObjectId,
+                        "number": Number(number),
+                        "opml": opml,
+                        "dateModified": dateNow,
+                        "showid": showObjectId
+                    };
+                    collectionScript.update({
+                        "showid": showObjectId,
+                        "number": Number(number),
+                        "userid": userObjectId
+                    }, objectToInsert, {w: 1}, function (e, result) {
+                        var objectId = objectToInsert._id;
+
+                        //##: DEBUG
+                        console.log("UPDATE SHOWNOTES: " + JSON.stringify(objectToInsert, null, 3));
+
+                        //##: Report success
+                        res.setHeader('Content-Type', 'application/json');
+                        res.status(200);
+                        res.send(JSON.stringify({"status": true, "id": objectId, "description": "Script updated."}));
+                        return false;
+                    });
+                } else {
+                    //##: Insert this show
+                    var objectToInsert = {
+                        "userid": userid,
+                        "number": Number(number),
+                        "opml": opml,
+                        "dateModified": dateNow,
+                        "showid": showObjectId
+                    };
+                    collectionScript.insert(objectToInsert, {w: 1}, function (e, result) {
+                        var objectId = objectToInsert._id;
+
+                        //##: DEBUG
+                        console.log("INSERT SHOWNOTES: " + JSON.stringify(objectToInsert, null, 3));
+
+                        //##: Report success
+                        res.setHeader('Content-Type', 'application/json');
+                        res.status(200);
+                        res.send(JSON.stringify({"status": true, "id": objectId, "description": "Script created."}));
+                        return false;
+                    });
+                }
+            });
+        });
+    });
+});
+
+/* Retrieve the script for an episode of a certain show */
+router.get('/script/:showid/:number', function (req, res, next) {
+    console.log("HEADER: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        var showid = req.params.showid;
+        var number = req.params.number;
+
+        console.log("Request for script of episode: " + number + " of show: " + showid + " for user: " + userid);
+
+        //##: Need to have a show id for lookup
+        if (!showid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid show id."}));
+            return false;
+        }
+
+        //##: Need to have an episode number too
+        //TODO: this link checking needs more validation
+        if (!number) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "That episode number is not valid."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title/shortname
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find episode
+            var collectionScript = db.collection(process.env.cgsbCollectionScripts);
+            var showObjectId = new ObjectId(showid);
+            var userObjectId = new ObjectId(userid);
+            collectionScript.find({
+                "showid": showObjectId,
+                "userid": userObjectId,
+                "number": Number(number)
+            }).toArray(function (err, records) {
+
+                //##: If no record already existed for this show title give back an error
+                if (records.length == 0) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "description": "No script exist with those parameters."
+                    }));
+                    return false;
+                }
+
+                //##: DEBUG
+                console.log("DEBUG(database) Found script: [" + records[0].opml + "]");
+
+                //##: Report success
+                res.setHeader('Content-Type', 'application/json');
+                res.status(200);
+                res.send(JSON.stringify({
+                    "status": true,
+                    "opml": records[0].opml,
+                    "description": "Script found."
+                }));
+                return false;
+            });
+        });
+    });
+});
+
 module.exports = router;

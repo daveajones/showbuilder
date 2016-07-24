@@ -3,6 +3,8 @@
  */
 
 $(document).ready(function () {
+    var autosave = null;
+
     $("#outliner").concord({
         "prefs": {
             "outlineFont": "Georgia",
@@ -15,8 +17,22 @@ $(document).ready(function () {
     });
     opXmlToOutline(initialOpmltext);
 
+    //Get param from query string
+    $.urlParam = function (name) {
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        if (results == null) {
+            return null;
+        }
+        else {
+            return results[1] || 0;
+        }
+    };
+
+    var showid = decodeURIComponent($.urlParam('sh'));
+    var epnum = decodeURIComponent($.urlParam('ep'));
+
     //set the page title
-    $('li#showSelector.dropdown a span.name').text('Script');
+    $('li#showSelector.dropdown a span.name').text('Shownotes');
 
     //Move cursors within a content editable element
     //___via: http://stackoverflow.com/questions/1125292/how-to-move-cursor-to-end-of-contenteditable-entity
@@ -133,6 +149,33 @@ $(document).ready(function () {
     });
 
     //Load the existing script here if there is one
+    showBuilder.apiGetScript(showid, epnum)
+        .done(function (script) {
+            console.log("Found an opml structure.");
+            //console.log(opml);
+            opXmlToOutline(script.opml);
+            opSetTextMode(true);
+            startAutosave();
+        })
+        .fail(function (description) {
+            console.log(description);
+            opXmlToOutline(initialOpmltext);
+            opSetTextMode(true);
+            startAutosave();
+        });
 
-    opSetTextMode(true);
+    //Start autosaving
+    function startAutosave() {
+        $(document).on('keyup', 'div.concord-text', function () {
+
+            clearTimeout(autosave);
+
+            autosave = setTimeout(function () {
+                var opml = opOutlineToXml("", "", "");
+                console.log("OPML: " + opml);
+                showBuilder.apiPutScript(showid, epnum, opml);
+            }, 3000);
+        })
+    }
+
 });
