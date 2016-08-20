@@ -1,5 +1,11 @@
 var mongo = require('mongodb').MongoClient;
 var traceback = require('traceback');
+var AWS = require('aws-sdk');
+AWS.config.update({
+    accessKeyId: process.env.cgsbAWSBucketKey,
+    secretAccessKey: process.env.cgsbAWSBucketSecret,
+    region: "us-east-1"
+});
 
 
 var loggit = function (message, sourcefile, methodName, LineNo) {
@@ -188,6 +194,23 @@ module.exports = {
 
         loggit("Sent email to: [" + emailaddr + "]");
     },
+
+    //##: AWS S3 -----------------------------
+    //##:-------------------------------------
+    s3CreateBucket: function (bucketname) {
+
+        var s3 = new AWS.S3();
+        s3.createBucket({Bucket: bucketname}, function (err) {
+            if (err) {
+                console.log("AWS Error:", err);
+                return false;
+            }
+            return true;
+        });
+
+    },
+
+
 
     addEpisodeToFeed: function (show, episode) {
 

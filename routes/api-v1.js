@@ -6,9 +6,9 @@ var showBuilder = require('../showBuilder');
 var ObjectId = require('mongodb').ObjectID;
 
 
-/***** User management *****/
+//##: ---------- User ----------------------
 
-/* Register a new user and start email validation */
+//##: Register a new user and start email validation
 router.post('/register', function (req, res, next) {
     var email = req.body.email;
     var password = req.body.password;
@@ -87,7 +87,7 @@ router.post('/register', function (req, res, next) {
     });
 });
 
-/* Set a new password in the database for this user */
+//##: Set a new password in the database for this user
 router.post('/setPassword', function (req, res, next) {
     console.log("HEADERS: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -136,7 +136,7 @@ router.post('/setPassword', function (req, res, next) {
     });
 });
 
-/* Check the email/password combination for validity and pass back a token if valid */
+//##: Check the email/password combination for validity and pass back a token if valid
 router.post('/login', function (req, res, next) {
     var email = req.body.email;
     var password = req.body.password;
@@ -188,7 +188,7 @@ router.post('/login', function (req, res, next) {
     });
 });
 
-/* Check the email verification token against the db to see if this new account is valid */
+//##: Check the email verification token against the db to see if this new account is valid
 router.post('/verify', function (req, res, next) {
     var email = req.body.email;
     var token = req.body.token;
@@ -233,7 +233,7 @@ router.post('/verify', function (req, res, next) {
     });
 });
 
-/* Remove the session cookie and the session token */
+//##: Remove the session cookie and the session token
 router.post('/logout', function (req, res, next) {
     var token = req.body.token;
 
@@ -263,9 +263,10 @@ router.post('/logout', function (req, res, next) {
     delete req.session.token;
 });
 
-/***** Account management *****/
 
-/* Set the account options for a user */
+//##: ---------- Account
+
+//##: Set the account options for a user
 //TODO: Need LOTS of defense here for these user supplied values
 router.post('/account', function (req, res, next) {
     console.log("HEADERS: " + req.get("X-AuthToken"));
@@ -330,7 +331,7 @@ router.post('/account', function (req, res, next) {
     });
 });
 
-/* Get the account options for a user */
+//##: Get the account options for a user
 router.get('/account', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -415,9 +416,9 @@ router.get('/account', function (req, res, next) {
 });
 
 
-/***** Show management *****/
+//##: ---------- Shows
 
-/* Create a new show for the user specified by the token */
+//##: Create a new show for the user specified by the token
 router.post('/show', function (req, res, next) {
     console.log("HEADERS: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -430,13 +431,23 @@ router.post('/show', function (req, res, next) {
 
         var title = req.body.title;
         var link = req.body.link;
+        var shortname = req.body.shortname;
 
         //##: Need to have a show title and needs to be long enough with no
         //##: wierd characters
-        if (!title || title.length < 1) {
+        if (!title || title.length < 3) {
             res.setHeader('Content-Type', 'application/json');
             res.status(422);
-            res.send(JSON.stringify({"status": false, "description": "Shows must have a title."}));
+            res.send(JSON.stringify({"status": false, "description": "Shows must have a valid title."}));
+            return false;
+        }
+
+        //##: Need to have a shortname and needs to be long enough with no
+        //##: wierd characters
+        if (!shortname || shortname.length < 3) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Shows must have a valid 'shortname'."}));
             return false;
         }
 
@@ -464,7 +475,7 @@ router.post('/show', function (req, res, next) {
             var collectionShows = db.collection(process.env.cgsbCollectionShows);
             var objectUserId = new ObjectId(userid);
             collectionShows.find({
-                "title": title,
+                "shortname": shortname,
                 "userid": objectUserId
             }).toArray(function (err, records) {
 
@@ -472,7 +483,7 @@ router.post('/show', function (req, res, next) {
                 if (records.length !== 0) {
                     res.setHeader('Content-Type', 'application/json');
                     res.status(422);
-                    res.send(JSON.stringify({"status": false, "description": "That show title already exists."}));
+                    res.send(JSON.stringify({"status": false, "description": "That show shortname already exists."}));
                     return false;
                 }
 
@@ -480,6 +491,7 @@ router.post('/show', function (req, res, next) {
                 var objectToInsert = {
                     "userid": userid,
                     "title": title,
+                    "shortname": shortname,
                     "link": link
                 };
                 collectionShows.insert(objectToInsert, {w: 1}, function (e, result) {
@@ -496,6 +508,7 @@ router.post('/show', function (req, res, next) {
                         "id": objectId,
                         "_id": objectId,
                         "userid": objectUserId,
+                        "shortname": shortname,
                         "title": title,
                         "link": link,
                         "description": "New show created."
@@ -507,7 +520,7 @@ router.post('/show', function (req, res, next) {
     });
 });
 
-/* Retrieve the details about a show for the user of this token */
+//##: Retrieve the details about a show for the user of this token
 router.get('/show/:showid', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -591,7 +604,7 @@ router.get('/show/:showid', function (req, res, next) {
     });
 });
 
-/* Delete a show for the user of this token */
+//##: Delete a show for the user of this token
 router.delete('/show/:showid', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -683,7 +696,7 @@ router.delete('/show/:showid', function (req, res, next) {
     });
 });
 
-/* Retrieve a list of all the shows for this user */
+//##: Retrieve a list of all the shows for this user
 router.get('/shows', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -742,9 +755,179 @@ router.get('/shows', function (req, res, next) {
 });
 
 
-/***** Episode management *****/
+//##: ---------- Shortnames
 
-/* Create a new episode or update one for a show for the user specified by the token */
+//##: Create a new shortname for a show
+router.post('/shortname/:shortname', function (req, res, next) {
+    console.log("HEADERS: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        var shortname = req.params.shortname;
+        var showid = req.body.showid;
+
+        //##: Need to have a shortname of a sane length
+        if (!shortname || shortname.length < 1) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid shortname."}));
+            return false;
+        }
+
+        //##: Need to have a show id of a sane length
+        if (!showid || showid.length < 1) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid show id."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title already
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find
+            var collectionShortnames = db.collection(process.env.cgsbCollectionShortnames);
+            var objectUserId = new ObjectId(userid);
+            var objectShowId = new ObjectId(showid);
+            collectionShortnames.find({
+                "shortname": shortname
+            }).toArray(function (err, records) {
+
+                //##: If a record already existed for this show/user combo give back an error
+                if (records.length !== 0) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(422);
+                    res.send(JSON.stringify({"status": false, "description": "That shortname already exists."}));
+                    return false;
+                }
+
+                //##: Insert this show
+                var objectToInsert = {
+                    "userid": objectUserId,
+                    "showid": objectShowId,
+                    "shortname": shortname
+                };
+                collectionShortnames.insert(objectToInsert, {w: 1}, function (e, result) {
+                    var objectId = objectToInsert._id;
+
+                    //##: DEBUG
+                    console.log("DEBUG(database) NEW SHORTNAME: [" + shortname + "]");
+
+                    //##: Report success
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(200);
+                    res.send(JSON.stringify({
+                        "status": true,
+                        "id": objectId,
+                        "_id": objectId,
+                        "userid": objectUserId,
+                        "showid": objectShowId,
+                        "shortname": shortname,
+                        "description": "Shortname linked to show."
+                    }));
+                    return false;
+                });
+            });
+        });
+    });
+});
+
+//##: Check if a shortname for a show exists
+router.head('/shortname/:shortname', function (req, res, next) {
+    console.log("HEADER: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        var shortname = req.params.shortname;
+
+        //##: Need to have a show show id for lookup
+        if (!shortname || shortname === "") {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(422);
+            res.send(JSON.stringify({"status": false, "description": "Invalid request."}));
+            return false;
+        }
+
+        //##: Connect to db and search for this shortname
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find a show with this shortname
+            var collectionShortnames = db.collection(process.env.cgsbCollectionShortnames);
+            var objectUserId = new ObjectId(userid);
+            collectionShortnames.find({
+                "shortname": shortname
+            }).toArray(function (err, records) {
+
+                //##: Check exists
+                if (records.length !== 1) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "count": 0,
+                        "description": "No show exists with this shortname: [" + shortname + "]."
+                    }));
+                    return false;
+                }
+
+                //##: DEBUG
+                if (records[0].shortname.toString() === shortname) {
+                    console.log("DEBUG(database) Shortname found: [" + records[0].shortname.toString() + "]");
+
+                    //##: Report success
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(200);
+                    res.send(JSON.stringify({
+                        "status": true,
+                        "description": "Shortname found."
+                    }));
+                    return false;
+                } else {
+                    console.log("DEBUG(database) Shortname type mismatch [" + typeof records[0].shortname + " | " + typeof shortname + "]");
+                    console.log(records[0].shortname);
+
+                    //##: Report failure
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(200);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "description": "Error retrieving shortname: [" + shortname + "]"
+                    }));
+                    return false;
+                }
+            });
+        });
+    });
+});
+
+
+//##: ---------- Episodes
+
+//##: Create a new episode or update one for a show for the user specified by the token
 router.put('/episode/:showid/:number', function (req, res, next) {
     console.log("HEADERS: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -766,6 +949,12 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         console.log("MEDIAFILE: [![" + req.body.mediafile + "]!]");
         var showid = req.params.showid;
         var dateNow = new Date().toISOString();
+
+        //##: Debug
+        console.log('--------------------------------------');
+        console.log(mediafile);
+        console.log('--------------------------------------');
+
 
         //##: Need to have an episode title and needs to be long enough with no
         //##: wierd characters
@@ -907,7 +1096,7 @@ router.put('/episode/:showid/:number', function (req, res, next) {
     });
 });
 
-/* Retrieve the details about an episode of a certain show */
+//##: Retrieve the details about an episode of a certain show
 router.get('/episode/:showid/:number', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -988,7 +1177,7 @@ router.get('/episode/:showid/:number', function (req, res, next) {
     });
 });
 
-/* Retrieve a list of all the episodes for this show */
+//##: Retrieve a list of all the episodes for this show
 router.get('/episodes/:showid', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -1063,7 +1252,7 @@ router.get('/episodes/:showid', function (req, res, next) {
     });
 });
 
-/* Delete an episode for the user of this token */
+//##: Delete an episode for the user of this token
 router.delete('/episode/:showid/:number', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -1181,9 +1370,9 @@ router.delete('/episode/:showid/:number', function (req, res, next) {
 });
 
 
-/***** Shownotes management *****/
+//##: ---------- Shownotes
 
-/* Create or update shownotes for an episode */
+//##: Create or update shownotes for an episode
 router.put('/shownotes/:showid/:number', function (req, res, next) {
     console.log("HEADERS: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -1295,7 +1484,7 @@ router.put('/shownotes/:showid/:number', function (req, res, next) {
     });
 });
 
-/* Retrieve the shownotes for an episode of a certain show */
+//##: Retrieve the shownotes for an episode of a certain show
 router.get('/shownotes/:showid/:number', function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -1377,9 +1566,9 @@ router.get('/shownotes/:showid/:number', function (req, res, next) {
 });
 
 
-/***** Script management *****/
+//##: ---------- Scripts
 
-/* Create or update script for an episode */
+//##: Create or update script for an episode
 router.put('/script/:showid/:number', function (req, res, next) {
     console.log("HEADERS: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
@@ -1491,8 +1680,10 @@ router.put('/script/:showid/:number', function (req, res, next) {
     });
 });
 
-/* Retrieve the script for an episode of a certain show */
+//##: Retrieve the script for an episode of a certain show
 router.get('/script/:showid/:number', function (req, res, next) {
+    showBuilder.s3CreateBucket();
+
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
         if (!tvalid) {
@@ -1571,5 +1762,6 @@ router.get('/script/:showid/:number', function (req, res, next) {
         });
     });
 });
+
 
 module.exports = router;

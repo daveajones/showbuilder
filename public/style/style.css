@@ -85,6 +85,11 @@ h4.showEditControls div.dropdown {
     height: 200px;
 }
 
+.pageOverlay#newShowForm input#inputShowShortName {
+    width: 100px;
+    text-align: right;
+}
+
 .dragging-over * {
     pointer-events: none;
 }

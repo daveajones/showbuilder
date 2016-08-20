@@ -26,6 +26,7 @@ $(document).on('ready', function () {
     var elMediaList = $('ul.media-list');
     var elButtonNewEpisode = $('button.newEpisode');
     var elButtonNewShow = $('a.newShow');
+    var autoshortnamecheck = null;
 
 
     /* Build initial show drop-down selector and show initial episode list*/
@@ -87,7 +88,7 @@ $(document).on('ready', function () {
     elNewShowFormOverlay.find('button.save').on('click', function () {
         var title = elNewShowFormOverlay.find('input#inputShowTitle').val();
         var link = elNewShowFormOverlay.find('input#inputShowLinkExternal').val();
-        addNewShow(title, link)
+        addNewShow(title, shortname, link)
             .done(function (show) {
                 console.log("DEBUG: " + show);
                 getAllShows();
@@ -100,6 +101,7 @@ $(document).on('ready', function () {
         getAllShows();
         return false;
     });
+    startAutoShortnameCheck();
 
     /* New episode dialog */
     elButtonNewEpisode.on('click', function () {
@@ -235,6 +237,54 @@ $(document).on('ready', function () {
     //Functions -------------------------
     //-----------------------------------
 
+    //Start auto
+    function startAutoShortnameCheck() {
+        $(document).on('keyup', 'input#inputShowShortName', function () {
+
+            clearTimeout(autoshortnamecheck);
+
+            autoshortnamecheck = setTimeout(function () {
+                var shortname = $('input#inputShowShortName').val();
+                console.log("shortname check: " + shortname);
+                checkShortname(shortname);
+            }, 3000);
+        })
+    }
+
+    function checkShortname(shortname) {
+        headShortname(shortname)
+            .done(function (msg) {
+                showBuilder.showAlert("Shortname is available.", true);
+            })
+            .fail(function (msg) {
+                showBuilder.showAlert("Shortname is taken.");
+            })
+    }
+
+    function headShortname(shortname) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "HEAD",
+            url: "/api/v1/shortname/" + shortname,
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    deferredObject.reject(responseData.description);
+                } else {
+                    deferredObject.resolve(responseData.description);
+                }
+            })
+            .fail(function (responseData) {
+                deferredObject.resolve(responseData.description);
+            });
+        //Return a promise
+        return deferredObject.promise();
+    }
 
     function closeOverlayForms() {
         elPageOverlay.collapse('hide');
