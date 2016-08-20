@@ -1,5 +1,5 @@
 //##: Set app configuration in the node env
-process.env.cgsbAppTitle = "ShowBuilder.io";
+process.env.cgsbAppTitle = "mydomain.io";
 process.env.cgsbDatabaseName = "showBuilder";
 process.env.cgsbDatabaseHost = "localhost";
 process.env.cgsbDatabasePort = "27017";
@@ -24,3 +24,4 @@ process.env.cgsbEmailPassword = "<changethisvalue>";
 
 process.env.cgsbAWSBucketKey = '<changethisvalue>';
 process.env.cgsbAWSBucketSecret = '<changethisvalue>';
+process.env.cgsbAWSBucketDomain = 'mydomain.io';

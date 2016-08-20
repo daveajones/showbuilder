@@ -500,6 +500,11 @@ router.post('/show', function (req, res, next) {
                     //##: DEBUG
                     console.log("DEBUG(database) NEW SHOW: [" + title + "]");
 
+                    //##: Call to AWS for a new bucket to hold all the html assets
+                    bucketName = shortname + '.' + process.env.cgsbAWSBucketDomain;
+                    console.log("DEBUG --> Creating bucket: [" + bucketName + "]");
+                    showBuilder.s3CreateBucket(bucketName);
+
                     //##: Report success
                     res.setHeader('Content-Type', 'application/json');
                     res.status(200);
@@ -825,6 +830,8 @@ router.post('/shortname/:shortname', function (req, res, next) {
                     //##: DEBUG
                     console.log("DEBUG(database) NEW SHORTNAME: [" + shortname + "]");
 
+                    showBuilder.s3CreateBucket(shortname + '.' + process.env.cgsbAWSBucketDomain);
+
                     //##: Report success
                     res.setHeader('Content-Type', 'application/json');
                     res.status(200);
@@ -845,7 +852,7 @@ router.post('/shortname/:shortname', function (req, res, next) {
 });
 
 //##: Check if a shortname for a show exists
-router.head('/shortname/:shortname', function (req, res, next) {
+router.head('/shortname/:shortname', nocache, function (req, res, next) {
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
         if (!tvalid) {
@@ -856,6 +863,8 @@ router.head('/shortname/:shortname', function (req, res, next) {
         }
 
         var shortname = req.params.shortname;
+
+        //##: TODO: need to enforce here that all shortnames must be lowercase, alphanum and less than 40 chars
 
         //##: Need to have a show show id for lookup
         if (!shortname || shortname === "") {
@@ -876,14 +885,14 @@ router.head('/shortname/:shortname', function (req, res, next) {
             }
 
             //##: Find a show with this shortname
-            var collectionShortnames = db.collection(process.env.cgsbCollectionShortnames);
+            var collectionShows = db.collection(process.env.cgsbCollectionShows);
             var objectUserId = new ObjectId(userid);
-            collectionShortnames.find({
+            collectionShows.find({
                 "shortname": shortname
             }).toArray(function (err, records) {
 
                 //##: Check exists
-                if (records.length !== 1) {
+                if (records.length === 0) {
                     res.setHeader('Content-Type', 'application/json');
                     res.status(404);
                     res.send(JSON.stringify({
@@ -1682,8 +1691,6 @@ router.put('/script/:showid/:number', function (req, res, next) {
 
 //##: Retrieve the script for an episode of a certain show
 router.get('/script/:showid/:number', function (req, res, next) {
-    showBuilder.s3CreateBucket();
-
     console.log("HEADER: " + req.get("X-AuthToken"));
     showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
         if (!tvalid) {
@@ -1763,5 +1770,12 @@ router.get('/script/:showid/:number', function (req, res, next) {
     });
 });
 
+
+function nocache(req, res, next) {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+}
 
 module.exports = router;

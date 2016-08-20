@@ -87,6 +87,7 @@ $(document).on('ready', function () {
     });
     elNewShowFormOverlay.find('button.save').on('click', function () {
         var title = elNewShowFormOverlay.find('input#inputShowTitle').val();
+        var shortname = elNewShowFormOverlay.find('input#inputShowShortName').val();
         var link = elNewShowFormOverlay.find('input#inputShowLinkExternal').val();
         addNewShow(title, shortname, link)
             .done(function (show) {
@@ -334,8 +335,8 @@ $(document).on('ready', function () {
         return deferredObject.promise();
     }
 
-    function addNewShow(title, link) {
-        console.log("addNewShow(" + title + "," + link + ")");
+    function addNewShow(title, shortname, link) {
+        console.log("addNewShow(" + title + "," + shortname + "," + link + ")");
         var authToken = getAuthToken();
         var deferredObject = $.Deferred();
         //Ajax call
@@ -345,6 +346,7 @@ $(document).on('ready', function () {
             dataType: 'json',
             data: {
                 "title": title,
+                "shortname": shortname,
                 "link": link
             },
             headers: {
