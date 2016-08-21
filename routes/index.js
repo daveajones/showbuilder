@@ -123,6 +123,13 @@ router.get('/shownotes', function (req, res, next) {
     }
 });
 
+//Testing
+router.post('/fileUpload', function (req, res) {
+    console.log("FILE BODY: " + req.body);
+    console.log("FILES OBJ: " + req.files);
+    res.send('file upload is done.');
+});
+
 function activateAccount(emailIsValid, res) {
     if(emailIsValid) {
         res.redirect('/home');

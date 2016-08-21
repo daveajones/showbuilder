@@ -27,6 +27,7 @@ $(document).on('ready', function () {
     var elButtonNewEpisode = $('button.newEpisode');
     var elButtonNewShow = $('a.newShow');
     var autoshortnamecheck = null;
+    var reader = new FileReader();
 
 
     /* Build initial show drop-down selector and show initial episode list*/
@@ -168,9 +169,36 @@ $(document).on('ready', function () {
         var buttonspan = $('div#newEpisodeForm label.btn-file').find('span');
 
         if (file) {
-            console.log("DEBUG: Filename -> " + file.name);
+            console.dir("DEBUG: File -> " + file);
             buttonspan.html('<i class="fa fa-spinner fa-spin fa-fw"></i>Loading...');
             loadFromFile(file);
+
+            //Begin uploading the file to storage
+            // Closure to capture the file information.
+            //-------- Needs to be moved to a function --------------------------------
+            var fd = new FormData();
+            fd.append('uploadingFile', $('input.mp3[type="file"]').get(0).files[0]);
+            fd.append('date', (new Date()).toString()); // req.body.date
+            fd.append('comment', 'This is a test.'); // req.body.commentvar xhr = new XMLHttpRequest();
+
+            var xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener("progress", uploadProgress, false);
+            xhr.addEventListener("load", uploadComplete, false);
+            xhr.addEventListener("error", uploadFailed, false);
+            xhr.addEventListener("abort", uploadCanceled, false);
+            xhr.open("POST", "/fileUpload");
+            xhr.send(fd);
+            /*
+             var xhr = $.ajax({
+             url: ‘/fileUpload’,
+             data: fd,
+             contentType: false,
+             processData: false,
+             type: ‘POST’
+             });
+             */
+            //-------- Needs to be moved to a function --------------------------------
+
         } else {
             console.log("DEBUG: File picker cancelled.");
         }
@@ -237,6 +265,28 @@ $(document).on('ready', function () {
     //-----------------------------------
     //Functions -------------------------
     //-----------------------------------
+
+    function uploadProgress(evt) {
+        if (evt.lengthComputable) {
+            var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+            $('.progress').text(percentComplete.toString() + '%');
+        } else {
+            $('.progress').text('unable to compute');
+        }
+    }
+
+    function uploadComplete(evt) {
+        uploadProgress(evt);
+        alert(evt.target.responseText);
+    }
+
+    function uploadFailed(evt) {
+        alert("There was an error attempting to upload the file.");
+    }
+
+    function uploadCanceled(evt) {
+        alert("The upload has been canceled by the user or the browser dropped the connection.");
+    }
 
     //Start auto
     function startAutoShortnameCheck() {
@@ -665,7 +715,7 @@ $(document).on('ready', function () {
                             var srcvalue = "data:" + image.format + ";base64," + window.btoa(base64String);
                             $("div#newEpisodeForm img.albumart").attr('src', srcvalue);
                             $("div#newEpisodeForm input#inputEpisodeAlbumArt").val(srcvalue);
-                            console.log("DEBUG: Album art -> " + srcvalue);
+                            //console.log("DEBUG: Album art -> " + srcvalue);
                             $("div#newEpisodeForm img.albumart").style.display = "block";
                         }
                     }
