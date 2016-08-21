@@ -195,6 +195,9 @@ module.exports = {
         loggit("Sent email to: [" + emailaddr + "]");
     },
 
+    //##: Get the storage system in use
+    
+
     //##: AWS S3 -----------------------------
     //##:-------------------------------------
     s3CreateBucket: function (bucketname) {

@@ -166,7 +166,7 @@ $(document).on('ready', function () {
     });
     elNewEpisodeForm.find('input.mp3[type="file"]').on('change', function (event) {
         var file = event.target.files[0];
-        var buttonspan = $('div#newEpisodeForm label.btn-file').find('span');
+        var buttonspan = $('div#newEpisodeForm label.btn-file').find('span.lbl');
 
         if (file) {
             console.dir("DEBUG: File -> " + file);
@@ -176,8 +176,10 @@ $(document).on('ready', function () {
             //Begin uploading the file to storage
             // Closure to capture the file information.
             //-------- Needs to be moved to a function --------------------------------
+            buttonspan.html('<i class="fa fa-spinner fa-spin fa-fw"></i>Uploading...');
             var fd = new FormData();
-            fd.append('uploadingFile', $('input.mp3[type="file"]').get(0).files[0]);
+            fd.append('mediafile', $('input.mp3[type="file"]').get(0).files[0]);
+            console.dir($('input.mp3[type="file"]').get(0).files[0]);
             fd.append('date', (new Date()).toString()); // req.body.date
             fd.append('comment', 'This is a test.'); // req.body.commentvar xhr = new XMLHttpRequest();
 
@@ -266,26 +268,40 @@ $(document).on('ready', function () {
     //Functions -------------------------
     //-----------------------------------
 
+    function resetMediaUploadButton(message) {
+        if (typeof message !== "undefined" && message !== "") {
+            $('div#newEpisodeForm label.btn-file').find('span.lbl').text(message);
+        } else {
+            $('div#newEpisodeForm label.btn-file').find('span.lbl').text('Choose mp3...');
+        }
+        $('div#newEpisodeForm label.btn-file').find('span.percent').text('');
+    }
+
     function uploadProgress(evt) {
         if (evt.lengthComputable) {
             var percentComplete = Math.round(evt.loaded * 100 / evt.total);
-            $('.progress').text(percentComplete.toString() + '%');
+            $('div#newEpisodeForm label.btn-file').find('span.lbl').html('Uploading... ');
+            $('div#newEpisodeForm label.btn-file').find('span.percent').html(' ' + percentComplete.toString() + '%');
         } else {
-            $('.progress').text('unable to compute');
+            $('div#newEpisodeForm label.btn-file').find('span.lbl').html('Uploading... ');
+            $('div#newEpisodeForm label.btn-file').find('span.percent').html(' (calculating)');
         }
     }
 
     function uploadComplete(evt) {
         uploadProgress(evt);
         alert(evt.target.responseText);
+        resetMediaUploadButton("Upload finished.");
     }
 
     function uploadFailed(evt) {
         alert("There was an error attempting to upload the file.");
+        resetMediaUploadButton();
     }
 
     function uploadCanceled(evt) {
         alert("The upload has been canceled by the user or the browser dropped the connection.");
+        resetMediaUploadButton();
     }
 
     //Start auto
@@ -716,7 +732,7 @@ $(document).on('ready', function () {
                             $("div#newEpisodeForm img.albumart").attr('src', srcvalue);
                             $("div#newEpisodeForm input#inputEpisodeAlbumArt").val(srcvalue);
                             //console.log("DEBUG: Album art -> " + srcvalue);
-                            $("div#newEpisodeForm img.albumart").style.display = "block";
+                            //$("div#newEpisodeForm img.albumart").style.display = "block";
                         }
                     }
                 });

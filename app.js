@@ -5,7 +5,8 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var cookieSession = require('cookie-session');
-var bodyParser = require('body-parser');
+//var bodyParser = require('body-parser');
+var bb = require('express-busboy');
 
 
 var routes = require('./routes/index');
@@ -19,13 +20,22 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
-app.use(bodyParser.json({limit: '200mb'}));
-app.use(bodyParser.urlencoded({limit: '200mb', extended: true}));
+// app.use(bodyParser.json({limit: '200mb'}));
+// app.use(bodyParser.urlencoded({limit: '200mb', extended: true}));
+// app.use(bodyParser({uploadDir: './uploads'}));
 app.use(cookieParser(process.env.cgsbSecurityCookieParserKey));
 app.use(cookieSession({secret:process.env.cgsbSecurityCookieSessionKey}));
 app.use(express.static(path.join(__dirname, 'public')));
+
+//File Upload middleware
+bb.extend(app, {
+    upload: true,
+    path: path.join(__dirname, 'uploads'),
+    allowedPath: /./
+});
+
 
 //routes
 app.use('/', routes);

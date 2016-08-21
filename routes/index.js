@@ -125,8 +125,8 @@ router.get('/shownotes', function (req, res, next) {
 
 //Testing
 router.post('/fileUpload', function (req, res) {
-    console.log("FILE BODY: " + req.body);
-    console.log("FILES OBJ: " + req.files);
+    console.log("File upload request incoming...");
+    console.log(req.files.mediafile.file);
     res.send('file upload is done.');
 });
 
