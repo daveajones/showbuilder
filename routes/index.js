@@ -127,7 +127,16 @@ router.get('/shownotes', function (req, res, next) {
 router.post('/fileUpload', function (req, res) {
     console.log("File upload request incoming...");
     console.log(req.files.mediafile.file);
-    res.send('file upload is done.');
+    //##: Report success
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200);
+    res.send(JSON.stringify({
+        "status": true,
+        "id": req.files.mediafile.uuid,
+        "filename": req.files.mediafile.filename,
+        "field": req.files.mediafile.field,
+        "description": "File upload complete."
+    }));
 });
 
 function activateAccount(emailIsValid, res) {

@@ -195,8 +195,32 @@ module.exports = {
         loggit("Sent email to: [" + emailaddr + "]");
     },
 
-    //##: Get the storage system in use
-    
+    //##: Get/Set the media storage provider for a user
+    setMediaStorageProvider: function (userId, provider) {
+        //TODO: save the combo in the userStorage collection
+    },
+    getMediaStorageProvider: function (userId) {
+        return "aws-s3";
+    },
+
+    //##: Get/Set the credentials for a provider/user combination. For some services the tokens
+    //##: might represent username (token1) and password (token2). For others, like AWS, the tokens
+    //##: might be access keys (ID and secret). Yet others, like SCP, may have an SSH key for token1
+    setMediaStorageProviderCredentials: function (userId, provider, token1, token2) {
+
+    },
+    getMediaStorageProviderCredentials: function (userId, provider) {
+
+    },
+
+    //##: Get/Set the storage path for a provider/user combo.  In AWS-S3 the path would be a bucket+key
+    //##: string to prefix. In SCP this would be a full path from the root of the remote drive
+    setMediaStorageProviderPath: function (userId, provider) {
+
+    },
+    getMediaStorageProviderPath: function (userId, provider) {
+
+    },
 
     //##: AWS S3 -----------------------------
     //##:-------------------------------------

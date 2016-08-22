@@ -290,7 +290,7 @@ $(document).on('ready', function () {
 
     function uploadComplete(evt) {
         uploadProgress(evt);
-        alert(evt.target.responseText);
+        console.dir(evt);
         resetMediaUploadButton("Upload finished.");
     }
 
