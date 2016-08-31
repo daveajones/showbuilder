@@ -120,6 +120,8 @@ $(document).on('ready', function () {
         var albumart = $('#newEpisodeForm.pageOverlay img.albumart').attr('src');
         var epnumber = $('#newEpisodeForm.pageOverlay input.episodeNumber').val();
         var link = $('#newEpisodeForm.pageOverlay input#inputEpisodeLinkExternal').val();
+        var mediafileid = $('#newEpisodeForm.pageOverlay input#inputEpisodeMediaFileId').val() || undefined;
+        var mediafilename = $('#newEpisodeForm.pageOverlay input#inputEpisodeMediaFileName').val() || undefined;
         var mp3url = '#';
 
         if (!title) {
@@ -127,7 +129,7 @@ $(document).on('ready', function () {
             return false;
         }
 
-        addNewEpisode(showid, epnumber, title, link, description, explicit, albumart, mp3url, false)
+        addNewEpisode(showid, epnumber, title, link, description, explicit, albumart, mp3url, mediafileid, mediafilename, false)
             .done(function (episodeid) {
                 showBuilder.showAlert("Episode added", true);
                 setActiveShow(env.gActiveShow);
@@ -146,6 +148,8 @@ $(document).on('ready', function () {
         var albumart = $('#newEpisodeForm.pageOverlay img.albumart').attr('src');
         var epnumber = $('#newEpisodeForm.pageOverlay input.episodeNumber').val();
         var link = $('#newEpisodeForm.pageOverlay input#inputEpisodeLinkExternal').val();
+        var mediafileid = $('#newEpisodeForm.pageOverlay input#inputEpisodeMediaFileId').val() || undefined;
+        var mediafilename = $('#newEpisodeForm.pageOverlay input#inputEpisodeMediaFileName').val() || undefined;
         var mp3url = '#';
 
         if (!title) {
@@ -153,7 +157,7 @@ $(document).on('ready', function () {
             return false;
         }
 
-        addNewEpisode(showid, epnumber, title, link, description, explicit, albumart, mp3url, true)
+        addNewEpisode(showid, epnumber, title, link, description, explicit, albumart, mp3url, mediafileid, mediafilename, true)
             .done(function (episodeid) {
                 showBuilder.showAlert("Episode added", true);
                 setActiveShow(getCurrentShowId());
@@ -188,18 +192,8 @@ $(document).on('ready', function () {
             xhr.addEventListener("load", uploadComplete, false);
             xhr.addEventListener("error", uploadFailed, false);
             xhr.addEventListener("abort", uploadCanceled, false);
-            xhr.open("POST", "/fileUpload");
+            xhr.open("POST", "/mediaFileUpload");
             xhr.send(fd);
-            /*
-             var xhr = $.ajax({
-             url: ‘/fileUpload’,
-             data: fd,
-             contentType: false,
-             processData: false,
-             type: ‘POST’
-             });
-             */
-            //-------- Needs to be moved to a function --------------------------------
 
         } else {
             console.log("DEBUG: File picker cancelled.");
@@ -291,6 +285,13 @@ $(document).on('ready', function () {
     function uploadComplete(evt) {
         uploadProgress(evt);
         console.dir(evt);
+        var response = JSON.parse(evt.target.response);
+        var fileId = response.id;
+        var fileName = response.filename;
+        console.log('ID ' + fileId);
+        console.log('FN ' + fileName);
+        $('div#newEpisodeForm form').append('<input type="hidden" id="inputEpisodeMediaFileId" value="' + fileId + '" />');
+        $('div#newEpisodeForm form').append('<input type="hidden" id="inputEpisodeMediaFileName" value="' + fileName + '" />');
         resetMediaUploadButton("Upload finished.");
     }
 
@@ -362,7 +363,7 @@ $(document).on('ready', function () {
         elPageOverlay.css("min-width", $(window).width());
     }
 
-    function addNewEpisode(showid, number, title, link, description, explicit, arturl, mp3url, published) {
+    function addNewEpisode(showid, number, title, link, description, explicit, arturl, mp3url, mediafileid, mediafilename, published) {
         console.log("addNewEpisode(" + showid + "," + title + "," + link + ")");
         var authToken = getAuthToken();
         var deferredObject = $.Deferred();
@@ -378,7 +379,9 @@ $(document).on('ready', function () {
                 "albumart": arturl,
                 "explicit": explicit,
                 "mediafile": mp3url,
-                "published": published
+                "published": published,
+                "mediafileid": mediafileid,
+                "mediafilename": mediafilename
             },
             headers: {
                 'X-AuthToken': authToken

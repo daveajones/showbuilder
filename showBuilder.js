@@ -210,7 +210,10 @@ module.exports = {
 
     },
     getMediaStorageProviderCredentials: function (userId, provider) {
-
+        return {
+            "username": process.env.cgsbAWSBucketKey,
+            "password": process.env.cgsbAWSBucketSecret
+        }
     },
 
     //##: Get/Set the storage path for a provider/user combo.  In AWS-S3 the path would be a bucket+key
@@ -218,8 +221,8 @@ module.exports = {
     setMediaStorageProviderPath: function (userId, provider) {
 
     },
-    getMediaStorageProviderPath: function (userId, provider) {
-
+    getMediaStorageProviderPath: function (userId, provider, shortname) {
+        return shortname + '.' + process.env.cgsbAWSBucketDomain;
     },
 
     //##: AWS S3 -----------------------------
@@ -232,6 +235,53 @@ module.exports = {
                 console.log("AWS Error:", err);
                 return false;
             }
+            return true;
+        });
+
+    },
+
+    s3UploadFile: function (bucketname, filepath, filename) {
+
+        var fs = require('fs');
+        var s3 = new AWS.S3();
+        s3.createBucket({Bucket: bucketname}, function (err) {
+            if (err) {
+                console.log("s3UploadFile() -> AWS Error:", err);
+                return false;
+            }
+
+            //Open the file and upload it to s3
+            fs.readFile(filepath, function (err, data) {
+                if (err) {
+                    console.log("s3UploadFile() -> FILE Error:", err);
+                    return false;
+                }
+
+                var params = {
+                    Key: filename,
+                    Body: data,
+                    Bucket: bucketname
+                };
+                s3.upload(params, function (err, data) {
+                    // Whether there is an error or not, delete the temp file
+                    // fs.unlink(file.path, function (err) {
+                    //     if (err) {
+                    //         console.error(err);
+                    //     }
+                    //     console.log('Temp File Delete');
+                    // });
+
+                    console.log("PRINT FILE:", filepath);
+                    if (err) {
+                        console.log('ERROR MSG: ', err);
+                        //res.status(500).send(err);
+                    } else {
+                        console.log('Successfully uploaded data');
+                        //res.status(200).end();
+                    }
+                });
+            });
+
             return true;
         });
 

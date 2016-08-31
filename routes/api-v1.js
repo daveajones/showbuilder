@@ -416,6 +416,162 @@ router.get('/account', function (req, res, next) {
 });
 
 
+//##: ---------- Services
+
+//##: Set the service options for a user
+//TODO: Need LOTS of defense here for these user supplied values
+//TODO: unfinished function
+router.post('/services', function (req, res, next) {
+    console.log("HEADERS: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+        var mediaFileService = req.body.mediafileservice;
+        var mediaFileServiceUsername = req.body.mediafileserviceusername;
+        var mediaFileServicePassword = req.body.mediafileservicepassword;
+        var mediaFileServiceEndpoint = req.body.mediafileserviceendpoint;
+
+
+        //##: Check url for validity
+        //TODO: validate inputs here. very important!
+
+        //Update the account options in the database
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                return console.dir(err)
+            }
+
+            var objectToInsert = {
+                "userid": userid,
+                "firstname": firstname,
+                "lastname": lastname,
+                "personalsite": personalsite
+            };
+            var collectionAccounts = db.collection(process.env.cgsbCollectionAccounts);
+            //collectionUsers.insert({"email": email, "password": hash}, {w: 1}, function (err, result) {});
+            collectionAccounts.update(
+                {"userid": userid},
+                objectToInsert,
+                {upsert: true},
+                {w: 1}, function (e, result) {
+                    if (e) {
+                        //##: Report error
+                        //TODO: this should be a standard error response handler and not copy/pasted a million times
+                        res.setHeader('Content-Type', 'application/json');
+                        res.status(500);
+                        res.send(JSON.stringify({
+                            "status": false,
+                            "result": result,
+                            "description": "There was an error processing this request."
+                        }));
+                        return false;
+                    }
+
+                    //##: Report success
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(200);
+                    res.send(JSON.stringify({
+                        "status": true,
+                        "episodes": records,
+                        "count": records.length,
+                        "description": "[" + records.length + "] episodes found."
+                    }));
+                });
+        });
+    });
+});
+
+//##: Get the service options for a user
+//TODO: unfinished function
+router.get('/services', function (req, res, next) {
+    console.log("HEADER: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title/showid
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find a user with the given id
+            var collectionAccounts = db.collection(process.env.cgsbCollectionAccounts);
+            var objectUserId = new ObjectId(userid);
+            collectionAccounts.find({
+                "userid": objectUserId
+            }).toArray(function (err, records) {
+                if (err) {
+                    //##: Error occured
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(500);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "userid": userid,
+                        "description": "An error occured looking for account details."
+                    }));
+                    return false;
+                }
+
+                //##: If a record does not exist give back an error
+                if (records.length !== 1) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "count": 0,
+                        "description": "No account details exist for user id: [" + userid + "]."
+                    }));
+                    return false;
+                }
+
+                console.log("DEBUG(database) Found User id: [" + records[0].userid.toString() + " | " + userid + "]");
+
+                //##: DEBUG
+                if (records[0].userid.toString() == userid) {
+                    //##: Report success
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(200);
+                    res.send(JSON.stringify({
+                        "status": true,
+                        "userid": records[0].userid,
+                        "account": records[0],
+                        "description": "User account details found."
+                    }));
+                    return false;
+                } else {
+                    console.log("DEBUG(database) User id type mismatch [" + typeof records[0].userid + " | " + typeof userid + "]");
+                    console.log(records[0]._id);
+
+                    //##: Report failure
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(401);
+                    res.send(JSON.stringify({
+                        "status": false,
+                        "userid": userid,
+                        "description": "Error retreiving user account details: [" + records[0].userid + " | " + userid + "]"
+                    }));
+                    return false;
+                }
+            });
+        });
+    });
+});
+
+
 //##: ---------- Shows
 
 //##: Create a new show for the user specified by the token
@@ -955,13 +1111,15 @@ router.put('/episode/:showid/:number', function (req, res, next) {
         var published = (req.body.published === "true");
         var albumart = req.body.albumart;
         var mediafile = req.body.mediafile;
+        var mediafileid = req.body.mediafileid;
+        var mediafilename = req.body.mediafilename;
         console.log("MEDIAFILE: [![" + req.body.mediafile + "]!]");
         var showid = req.params.showid;
         var dateNow = new Date().toISOString();
 
         //##: Debug
         console.log('--------------------------------------');
-        console.log(mediafile);
+        console.log('DEBUG(mediafile): ' + mediafile);
         console.log('--------------------------------------');
 
 
@@ -1020,6 +1178,17 @@ router.put('/episode/:showid/:number', function (req, res, next) {
             // require("fs").writeFile("/tmp/out.png", base64Data, 'base64', function (err) {
             //     console.log(err);
             // });
+        }
+
+        //##: Was a media file id and name sent along with this
+        if (mediafileid && mediafilename) {
+            var mediafilepath = '/opt/showbuilder/uploads/' + mediafileid + '/mediafile/' + mediafilename;
+            console.log('DEBUG(mediafilepath): [' + mediafilepath + ']');
+
+            //Upload file to S3 here
+            showBuilder.s3UploadFile('<bucketname>', mediafilepath, mediafilename);
+            //TODO: need to check for success or failure
+
         }
 
         //##: Connect to db and search for a show with this title already

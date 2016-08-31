@@ -123,8 +123,8 @@ router.get('/shownotes', function (req, res, next) {
     }
 });
 
-//Testing
-router.post('/fileUpload', function (req, res) {
+//##: Testing
+router.post('/mediaFileUpload', function (req, res) {
     console.log("File upload request incoming...");
     console.log(req.files.mediafile.file);
     //##: Report success
