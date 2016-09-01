@@ -260,16 +260,17 @@ module.exports = {
                 var params = {
                     Key: filename,
                     Body: data,
-                    Bucket: bucketname
+                    Bucket: bucketname,
+                    ACL: "public-read"
                 };
                 s3.upload(params, function (err, data) {
                     // Whether there is an error or not, delete the temp file
-                    // fs.unlink(file.path, function (err) {
-                    //     if (err) {
-                    //         console.error(err);
-                    //     }
-                    //     console.log('Temp File Delete');
-                    // });
+                    fs.unlink(filepath, function (err) {
+                        if (err) {
+                            console.error(err);
+                        }
+                        console.log('Temp File Delete');
+                    });
 
                     console.log("PRINT FILE:", filepath);
                     if (err) {

@@ -25,3 +25,4 @@ process.env.cgsbEmailPassword = "<changethisvalue>";
 process.env.cgsbAWSBucketKey = '<changethisvalue>';
 process.env.cgsbAWSBucketSecret = '<changethisvalue>';
 process.env.cgsbAWSBucketDomain = 'mydomain.io';
+process.env.cgsbAWSBucketTest = '<nameoftestbucket>';

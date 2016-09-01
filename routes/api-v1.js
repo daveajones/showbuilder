@@ -1186,8 +1186,9 @@ router.put('/episode/:showid/:number', function (req, res, next) {
             console.log('DEBUG(mediafilepath): [' + mediafilepath + ']');
 
             //Upload file to S3 here
-            showBuilder.s3UploadFile('<bucketname>', mediafilepath, mediafilename);
+            showBuilder.s3UploadFile(process.env.cgsbAWSBucketTest, mediafilepath, mediafilename);
             //TODO: need to check for success or failure
+            mediafile = 'https://s3.amazonaws.com/' + process.env.cgsbAWSBucketTest + '/' + mediafilename;
 
         }
 
