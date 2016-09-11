@@ -56,13 +56,23 @@ $(document).on('ready', function () {
 
     /* Episode publish button */
     elEpisodeGallery.on('click', 'a.btn-publish', function () {
-        alert('test');
+        var elButton = $(this);
+        var elEpisode = elButton.parent().parent();
+        var number = elEpisode.data('number');
+
         //TODO: need ajax and verification here before marking as published
-        $(this).parents('li.media').removeClass('unpublished').addClass('published');
-        $(this).removeClass('btn-publish btn-success btn-default').addClass('btn-unpublish');
-        $(this).text('Un-publish');
-        $(this).siblings('.btn-delete').remove();
-        $(this).blur();
+        publishEpisode(getCurrentShowId(), number)
+            .done(function (showId, episodeNumber) {
+                elButton.parents('li.media').removeClass('unpublished').addClass('published');
+                elButton.removeClass('btn-publish btn-success btn-default').addClass('btn-unpublish');
+                elButton.text('Un-publish');
+                elButton.siblings('.btn-delete').remove();
+                elButton.blur();
+            })
+            .fail(function (msg) {
+                showAlert(msg, false);
+            });
+
     });
 
     /* Episode delete button */
@@ -181,19 +191,7 @@ $(document).on('ready', function () {
             // Closure to capture the file information.
             //-------- Needs to be moved to a function --------------------------------
             buttonspan.html('<i class="fa fa-spinner fa-spin fa-fw"></i>Uploading...');
-            var fd = new FormData();
-            fd.append('mediafile', $('input.mp3[type="file"]').get(0).files[0]);
-            console.dir($('input.mp3[type="file"]').get(0).files[0]);
-            fd.append('date', (new Date()).toString()); // req.body.date
-            fd.append('comment', 'This is a test.'); // req.body.commentvar xhr = new XMLHttpRequest();
-
-            var xhr = new XMLHttpRequest();
-            xhr.upload.addEventListener("progress", uploadProgress, false);
-            xhr.addEventListener("load", uploadComplete, false);
-            xhr.addEventListener("error", uploadFailed, false);
-            xhr.addEventListener("abort", uploadCanceled, false);
-            xhr.open("POST", "/mediaFileUpload");
-            xhr.send(fd);
+            uploadFile($('input.mp3[type="file"]').get(0).files[0]);
 
         } else {
             console.log("DEBUG: File picker cancelled.");
@@ -261,6 +259,22 @@ $(document).on('ready', function () {
     //-----------------------------------
     //Functions -------------------------
     //-----------------------------------
+
+    function uploadFile(fileObject) {
+        var fd = new FormData();
+        fd.append('mediafile', fileObject);
+        //console.dir($('input.mp3[type="file"]').get(0).files[0]);
+        fd.append('date', (new Date()).toString()); // req.body.date
+        fd.append('comment', 'This is a test.'); // req.body.commentvar xhr = new XMLHttpRequest();
+
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", uploadProgress, false);
+        xhr.addEventListener("load", uploadComplete, false);
+        xhr.addEventListener("error", uploadFailed, false);
+        xhr.addEventListener("abort", uploadCanceled, false);
+        xhr.open("POST", "/mediaFileUpload");
+        xhr.send(fd);
+    }
 
     function resetMediaUploadButton(message) {
         if (typeof message !== "undefined" && message !== "") {
@@ -546,6 +560,28 @@ $(document).on('ready', function () {
 
     }
 
+    function publishEpisode(showId, episodeNumber) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "POST",
+            url: "/api/v1/publish/" + showId + "/" + episodeNumber,
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    deferredObject.resolve(responseData.showid, responseData.number);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            });
+        //Return a promise
+        return deferredObject.promise();
+    }
+
     function getEpisodes(show) {
         var authToken = getAuthToken();
         var deferredObject = $.Deferred();
@@ -647,9 +683,14 @@ $(document).on('ready', function () {
             elEpisodeBody.append('<p class="description hidden-xs">' + episode.description + '</p>');
 
             //Add the media player TODO: the type attribute here should be calculated server side
-            elEpisodeBody.append('<audio controls="true"><source src="' + episode.mediafile + '" type="audio/mpeg"></audio>');
+            if (episode.mediafile == '#') {
+                elEpisodeBody.append('<a class="btn btn-default uploadMediafile" href="/upload?sh=' + show._id + '&ep=' + episode.number + '"> Choose mp3...</a>');
+            } else {
+                elEpisodeBody.append('<audio controls="true"><source src="' + episode.mediafile + '" type="audio/mpeg"></audio>');
+            }
 
             //Script & Shownotes controls
+            elEpisodeBody.append('<hr class="showControlsSeparator">');
             elEpisodeBody.append('<h4 class="showEditControls"></h4>');
             elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editScript" href="/script?sh=' + show._id + '&ep=' + episode.number + '"> Script</a> ');
             elEpisodeBody.find('.showEditControls').append('<a class="btn btn-default editShownotes" href="/shownotes?sh=' + show._id + '&ep=' + episode.number + '"> Shownotes</a> ');
@@ -702,7 +743,9 @@ $(document).on('ready', function () {
             liEpisode.find('div.media-body').append('<a href="#" class="btn btn-default pull-right btn-danger btn-delete">Delete</a> ');
         }
         liEpisode.find('div.media-body').append('<p class="description hidden-xs">' + description + '</p>');
-        liEpisode.find('div.media-body').append('<audio src="' + mp3url + '" controls=""></audio>');
+        if (mp3url != '#') {
+            liEpisode.find('div.media-body').append('<audio src="' + mp3url + '" controls=""></audio>');
+        }
         liEpisode.find('div.media-body').append('<h4 class="showEditControls"></h4>');
         liEpisode.find('div.media-body > h4.showEditControls').append('<a href="#" class="btn btn-default editScript">Script</a> ');
         liEpisode.find('div.media-body > h4.showEditControls').append('<a href="#" class="btn btn-default editShownotes">Shownotes</a> ');

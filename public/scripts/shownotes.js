@@ -31,8 +31,16 @@ $(document).ready(function () {
     var showid = decodeURIComponent($.urlParam('sh'));
     var epnum = decodeURIComponent($.urlParam('ep'));
 
+    //Add the showid hash to the return button
+    $('.btn-toolbar a.back').attr('href', $('.btn-toolbar a.back').attr('href') + '/#' + showid);
+
+    //Click handler for save button
+    $('.btn-toolbar button.save').on('click', function () {
+        saveOpml();
+    });
+
     //set the page title
-    $('li#showSelector.dropdown a span.name').text('Shownotes');
+    $('li#showSelector.dropdown a span.name').text(' Shownotes');
 
     //Move cursors within a content editable element
     //___via: http://stackoverflow.com/questions/1125292/how-to-move-cursor-to-end-of-contenteditable-entity
@@ -74,6 +82,14 @@ $(document).ready(function () {
             range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
             range.select();//Select the range (make it the visible selection
         }
+    }
+
+    function disableSaveButton() {
+        $('.btn-toolbar button.save').addClass('disabled');
+    }
+
+    function enableSaveButton() {
+        $('.btn-toolbar button.save').removeClass('disabled');
     }
 
     //Hot keys
@@ -168,14 +184,18 @@ $(document).ready(function () {
     function startAutosave() {
         $(document).on('keyup', 'div.concord-text', function () {
 
+            enableSaveButton();
+
             clearTimeout(autosave);
 
-            autosave = setTimeout(function () {
-                var opml = opOutlineToXml("", "", "");
-                console.log("OPML: " + opml);
-                showBuilder.apiPutShownotes(showid, epnum, opml);
-            }, 3000);
+            autosave = setTimeout(saveOpml, 3000);
         })
     }
 
+    saveOpml = function () {
+        var opml = opOutlineToXml("", "", "");
+        console.log("OPML: " + opml);
+        showBuilder.apiPutShownotes(showid, epnum, opml);
+        disableSaveButton();
+    }
 });
