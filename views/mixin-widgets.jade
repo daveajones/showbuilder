@@ -70,6 +70,10 @@ mixin navbar_home(title, username)
                                     a.newShow(href='#', data-toggle='collapse', data-target='#newShowForm')
                                         i.fa.fa-plus.fa-fw
                                         |  Add New Show
+                                li#aShowDelete
+                                    a.deleteShow(href='#', data-toggle='collapse', data-target='#deleteShowForm')
+                                        i.fa.fa-minus.fa-fw
+                                        |  Delete This Show
                     +navbar_part_usermenu(username, 'home')
 
 mixin navbar(title, name, section)

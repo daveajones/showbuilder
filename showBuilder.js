@@ -7,7 +7,6 @@ AWS.config.update({
     region: "us-east-1"
 });
 
-
 var loggit = function (message, sourcefile, methodName, LineNo) {
     //var tb = traceback()[1]; // 1 because 0 should be your enterLog-Function itself
     // fs.appendFile('errlog.txt', message + '\t' + tb.file + '\t' + tb.method + '\t' + tb.line + '\n', function (e) {
@@ -21,7 +20,6 @@ var loggit = function (message, sourcefile, methodName, LineNo) {
 
 module.exports = {
 
-    
     //##: Renders a jade template if authorized or redirects if not
     renderTemplateOrRedirect: function (authorized, res, onSuccess, onFailure) {
         if (authorized) {
@@ -226,7 +224,7 @@ module.exports = {
     },
 
     //##: AWS S3 -----------------------------
-    //##:-------------------------------------
+    //##: -------------------------------------
     s3CreateBucket: function (bucketname) {
 
         var s3 = new AWS.S3();
@@ -292,7 +290,9 @@ module.exports = {
         var RSS = require('rss');
 
         var feed = new RSS({
-            title: getShowTitle(show)
+            title: getShowTitle(show),
+            feed_url: getShowFeedUrl(show),
+            site_url: getShowSiteUrl(show)
         });
     },
 
@@ -332,7 +332,7 @@ module.exports = {
                 "_id": objectShowId
             }).toArray(function (err, records) {
 
-                //##: If a record already existed for this show title give back an error
+                //##: If no record existed for this show title give back an error
                 if (records.length === 0) {
                     console.log("ERROR: showBuilder.getShowTitle() - No show with this id found: [" + showid + "].");
                     return false;
@@ -349,6 +349,93 @@ module.exports = {
                 }
             });
         });
-    }
+    },
 
+    //##: Get the feed url of a show
+    getShowFeedUrl: function (showid) {
+        //##: Need to have a show id for lookup
+        if (!showid) {
+            console.log("ERROR: showBuilder.getShowFeedUrl() - No showid given.");
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title/showid
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find a show with the given user id and show id
+            var collectionShows = db.collection(process.env.cgsbCollectionShows);
+            var objectShowId = new ObjectId(showid);
+            collectionShows.find({
+                "_id": objectShowId
+            }).toArray(function (err, records) {
+
+                //##: If no record existed for this show title give back an error
+                if (records.length === 0) {
+                    console.log("ERROR: showBuilder.getShowFeedUrl() - No show with this id found: [" + showid + "].");
+                    return false;
+                }
+
+                //##: DEBUG
+                if (records[0]._id.toString() === showid) {
+                    console.log("DEBUG(database) Found Show id: [" + records[0]._id + "]");
+                    return records[0]._id;
+                } else {
+                    console.log("DEBUG(database) Show id type mismatch [" + typeof records[0]._id + " | " + typeof showid + "]");
+                    console.log(records[0]._id);
+                    return false;
+                }
+            });
+        });
+    },
+
+    //##: Get the site url of a show
+    getShowSiteUrl: function (showid) {
+        //##: Need to have a show id for lookup
+        if (!showid) {
+            console.log("ERROR: showBuilder.getShowSiteUrl() - No showid given.");
+            return false;
+        }
+
+        //##: Connect to db and search for a show with this title/showid
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find a show with the given user id and show id
+            var collectionShows = db.collection(process.env.cgsbCollectionShows);
+            var objectShowId = new ObjectId(showid);
+            collectionShows.find({
+                "_id": objectShowId
+            }).toArray(function (err, records) {
+
+                //##: If no record existed for this show title give back an error
+                if (records.length === 0) {
+                    console.log("ERROR: showBuilder.getShowSiteUrl() - No show with this id found: [" + showid + "].");
+                    return false;
+                }
+
+                //##: DEBUG
+                if (records[0]._id.toString() === showid) {
+                    console.log("DEBUG(database) Found Show id: [" + records[0]._id + "]");
+                    return records[0]._id;
+                } else {
+                    console.log("DEBUG(database) Show id type mismatch [" + typeof records[0]._id + " | " + typeof showid + "]");
+                    console.log(records[0]._id);
+                    return false;
+                }
+            });
+        });
+    }
 };

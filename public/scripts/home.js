@@ -18,6 +18,7 @@ $(document).on('ready', function () {
     var elEpisodeGallery = $("div#episodeList.container");
     var elNewEpisodeForm = $('#newEpisodeForm');
     var elNewShowForm = $('#newShowForm');
+    var elDeleteShowForm = $('#deleteShowForm');
     var elNewEpisodeFormOverlay = $('#newEpisodeForm.pageOverlay');
     var elNewShowFormOverlay = $('#newShowForm.pageOverlay');
     var elNewEpisodeFormWell = $('div#newEpisodeForm div.well');
@@ -243,6 +244,13 @@ $(document).on('ready', function () {
         return false;
     });
 
+
+    elDeleteShowForm.find('modal-footer a.btn-danger').on('click', function () {
+        deleteShow(getCurrentShowId())
+            .done(function () {
+                location.reload();
+            });
+    });
 
     /* Handle drag-drop into the body which should open the new episode form if it's hidden */
     $('body').on('dragenter', function (e) {
@@ -858,6 +866,28 @@ $(document).on('ready', function () {
 
     function hideLoadingScreen() {
         $('div#loading.container').hide();
+    }
+
+    function deleteShow(showId) {
+        var authToken = getAuthToken();
+        var deferredObject = $.Deferred();
+        //Ajax call
+        $.ajax({
+            method: "DELETE",
+            url: "/api/v1/show/" + showId,
+            headers: {
+                'X-AuthToken': authToken
+            }
+        })
+            .done(function (responseData) {
+                if (responseData.status) {
+                    deferredObject.resolve(responseData.showid);
+                } else {
+                    deferredObject.reject(responseData.description);
+                }
+            });
+        //Return a promise
+        return deferredObject.promise();
     }
 
     function deleteEpisode(showId, episodeNumber) {

@@ -1941,6 +1941,85 @@ router.get('/script/:showid/:number', function (req, res, next) {
 });
 
 
+//##: ---------- Publish
+
+//##: Publish a new episode or update publish details for a show for the user specified by the token
+router.post('/publish/:showid/:number', function (req, res, next) {
+    console.log("HEADERS: " + req.get("X-AuthToken"));
+    showBuilder.tokenIsValid(req.get("X-AuthToken"), req, res, function (tvalid, req, res, userid) {
+        if (!tvalid) {
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401);
+            res.send(JSON.stringify({"status": false, "description": "Token is not valid."}));
+            return false;
+        }
+
+        //TODO: these user submitted values need a lot of checking for safety
+        var number = req.params.number;
+        var showid = req.params.showid;
+        var dateNow = new Date().toISOString();
+
+        //##: Connect to db and search for a show with this title already
+        var MongoClient = require('mongodb').MongoClient;
+        MongoClient.connect("mongodb://" + process.env.cgsbDatabaseHost + ":" + process.env.cgsbDatabasePort + "/" + process.env.cgsbDatabaseName, function (err, db) {
+            if (err) {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
+
+            //##: Find episode
+            var collectionEpisodes = db.collection(process.env.cgsbCollectionEpisodes);
+            var showObjectId = new ObjectId(showid);
+            var userObjectId = new ObjectId(userid);
+            collectionEpisodes.find({
+                "showid": showObjectId,
+                "number": number,
+                "userid": userObjectId
+            }).toArray(function (err, records) {
+
+                console.log("[" + showid + "] [" + number + "] [" + userid + "]");
+
+                //##: If a record existed this should be an update
+                if (records.length == 1) {
+                    //##: Update this episode
+                    collectionEpisodes.update({
+                        "showid": showObjectId,
+                        "number": Number(number),
+                        "userid": userObjectId
+                    }, {
+                        "$set": {
+                            "published": true
+                        }
+                    }, {w: 1}, function (e, result) {
+                        var objectId = objectToInsert._id;
+
+                        //##: DEBUG
+                        console.log("UPDATE EPISODE: " + JSON.stringify(objectToInsert, null, 3));
+
+                        //##: Report success
+                        res.setHeader('Content-Type', 'application/json');
+                        res.status(200);
+                        res.send(JSON.stringify({"status": true, "id": objectId, "description": "Episode updated."}));
+                        return false;
+                    });
+                } else {
+                    //##: DEBUG
+                    console.log("PUBLISH EPISODE: Episode not found.");
+
+                    //##: Report success
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(404);
+                    res.send(JSON.stringify({"status": true, "description": "Episode published."}));
+                    return false;
+                }
+            });
+        });
+    });
+});
+
+
 function nocache(req, res, next) {
     res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     res.header('Expires', '-1');
